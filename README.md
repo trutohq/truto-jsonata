@@ -4,4 +4,4 @@
 
 ## Requires
 
-NodeJS 16+
+NodeJS 22+

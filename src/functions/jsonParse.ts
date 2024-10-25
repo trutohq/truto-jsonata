@@ -1,4 +1,4 @@
-function JsonParsefunction(str: string) {
+function jsonParse(str: string) {
   try {
     return JSON.parse(str)
   } catch (e) {
@@ -6,4 +6,4 @@ function JsonParsefunction(str: string) {
   }
 }
 
-export default JsonParsefunction
+export default jsonParse

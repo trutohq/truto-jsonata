@@ -180,7 +180,7 @@ describe('convertQueryToSql', async () => {
         {
           id: '123',
         },
-        undefined,
+        undefined
       )
       expect(result).toBe('id = 123')
     })
@@ -192,7 +192,7 @@ describe('convertQueryToSql', async () => {
         [],
         {
           id: 'Id',
-        },
+        }
       )
       expect(result).toBe('Id = 123')
     })
@@ -206,7 +206,7 @@ describe('convertQueryToSql', async () => {
         [],
         {
           id: 'Id',
-        },
+        }
       )
       expect(result).toBe('Id = 123')
     })
@@ -220,7 +220,7 @@ describe('convertQueryToSql', async () => {
         [],
         {
           id: 'Id',
-        },
+        }
       )
       expect(result).toBe('Id in (123,456)')
     })
@@ -232,7 +232,7 @@ describe('convertQueryToSql', async () => {
         [],
         {
           id: 'Id',
-        },
+        }
       )
       expect(result).toBe('Id in (123,456)')
     })
@@ -249,7 +249,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             id: 'string',
-          },
+          }
         )
         expect(result).toBe("id = '123'")
       })
@@ -264,7 +264,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             id: 'string',
-          },
+          }
         )
         expect(result).toBe("id = '123'")
       })
@@ -277,7 +277,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             id: 'string',
-          },
+          }
         )
         expect(result).toBe("id in ('123','456')")
       })
@@ -292,7 +292,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             id: 'string',
-          },
+          }
         )
         expect(result).toBe("id in ('123','456')")
       })
@@ -308,7 +308,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             id: 'string',
-          },
+          }
         )
         expect(result).toBe("id in ('123','456') AND id like '123'")
       })
@@ -323,7 +323,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             id: 'number',
-          },
+          }
         )
         expect(result).toBe('id = 123')
       })
@@ -338,7 +338,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             id: 'number',
-          },
+          }
         )
         expect(result).toBe('id = 123')
       })
@@ -351,7 +351,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             id: 'number',
-          },
+          }
         )
         expect(result).toBe('id in (123,456)')
       })
@@ -366,7 +366,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             id: 'number',
-          },
+          }
         )
         expect(result).toBe('id in (123,456)')
       })
@@ -381,7 +381,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             id: 'boolean',
-          },
+          }
         )
         expect(result).toBe('id = true')
       })
@@ -397,7 +397,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             id: 'boolean',
-          },
+          }
         )
         expect(result).toBe('id = true')
       })
@@ -411,7 +411,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             id: 'boolean',
-          },
+          }
         )
         expect(result).toBe('id in (true,false)')
       })
@@ -427,7 +427,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             id: 'boolean',
-          },
+          }
         )
         expect(result).toBe('id in (true,false)')
       })
@@ -442,7 +442,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             id: 'dotnetdate',
-          },
+          }
         )
         expect(result).toBe('id = DateTime(2023,07,27)')
       })
@@ -458,7 +458,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             id: 'dotnetdate',
-          },
+          }
         )
         expect(result).toBe('id = DateTime(2021,01,01)')
       })
@@ -472,7 +472,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             id: 'dotnetdate',
-          },
+          }
         )
         expect(result).toBe('id in (DateTime(2021,01,01),DateTime(2021,01,02))')
       })
@@ -488,7 +488,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             id: 'dotnetdate',
-          },
+          }
         )
         expect(result).toBe('id in (DateTime(2021,01,01),DateTime(2021,01,02))')
       })
@@ -505,7 +505,7 @@ describe('convertQueryToSql', async () => {
             type: {
               bank: 'BANK',
             },
-          },
+          }
         )
         expect(result).toBe("type = 'BANK'")
       })
@@ -520,7 +520,7 @@ describe('convertQueryToSql', async () => {
             type: {
               bank: 'BANK',
             },
-          },
+          }
         )
         expect(result).toBe("type = 'blah'")
       })
@@ -536,7 +536,7 @@ describe('convertQueryToSql', async () => {
               type: {
                 bank: true,
               },
-            },
+            }
           )
           expect(result).toBe('type = true')
         })
@@ -551,7 +551,7 @@ describe('convertQueryToSql', async () => {
               type: {
                 bank: false,
               },
-            },
+            }
           )
           expect(result).toBe('type = false')
         })
@@ -572,7 +572,7 @@ describe('convertQueryToSql', async () => {
         undefined,
         {
           ne: '!=',
-        },
+        }
       )
       expect(result).toBe('id != 123')
     })
@@ -586,7 +586,7 @@ describe('convertQueryToSql', async () => {
         undefined,
         {
           eq: '==',
-        },
+        }
       )
       expect(result).toBe('id == 123')
     })
@@ -607,7 +607,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             useOrForIn: true,
-          },
+          }
         )
         expect(result).toBe('(id = 123 OR id = 456)')
       })
@@ -625,7 +625,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             useOrForIn: true,
-          },
+          }
         )
         expect(result).toBe('(id = 123 OR id = 456) AND id > 123')
       })
@@ -645,7 +645,7 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             conjunction: 'OR',
-          },
+          }
         )
         expect(result).toBe('id in (123,456) OR id > 123')
       })
@@ -660,7 +660,7 @@ describe('convertQueryToSql', async () => {
           [],
           undefined,
           undefined,
-          undefined,
+          undefined
         )
         expect(result).toBe('id in (123,456) AND id > 123')
       })
@@ -686,10 +686,10 @@ describe('convertQueryToSql', async () => {
           undefined,
           {
             useDoubleQuotes: true,
-          },
+          }
         )
         expect(result).toBe(
-          'id in ("123","456") AND id > "123" AND type = "BANK"',
+          'id in ("123","456") AND id > "123" AND type = "BANK"'
         )
       })
       it('should never escape single quotes', () => {
@@ -705,7 +705,7 @@ describe('convertQueryToSql', async () => {
           {},
           {
             useDoubleQuotes: true,
-          },
+          }
         )
         expect(result).toBe(`name = "Uday's"`)
       })
@@ -721,7 +721,7 @@ describe('convertQueryToSql', async () => {
           },
           name: 'test',
         },
-        ['id'],
+        ['id']
       )
       expect(result).toBe('id in (123,456)')
     })
@@ -733,7 +733,7 @@ describe('convertQueryToSql', async () => {
           },
           name: 'test',
         },
-        ['test'],
+        ['test']
       )
       expect(result).toBe('')
     })
@@ -753,10 +753,10 @@ describe('convertQueryToSql', async () => {
         undefined,
         {
           groupComparisonInBrackets: true,
-        },
+        }
       )
       expect(result).toBe(
-        '((id = 87238 AND first_name = Uday) AND last_name = Bhaskar)',
+        '((id = 87238 AND first_name = Uday) AND last_name = Bhaskar)'
       )
     })
     it('should return empty if there is no query ', () => {
@@ -768,7 +768,7 @@ describe('convertQueryToSql', async () => {
         undefined,
         {
           groupComparisonInBrackets: true,
-        },
+        }
       )
       expect(result).toBe('')
     })
@@ -787,7 +787,7 @@ describe('convertQueryToSql', async () => {
         {},
         {
           escapeSingleQuotes: true,
-        },
+        }
       )
       expect(result).toBe(`name = 'Uday\\'s'`)
     })
@@ -804,7 +804,7 @@ describe('convertQueryToSql', async () => {
         {},
         {
           escapeSingleQuotes: true,
-        },
+        }
       )
       expect(result).toBe(`name in ('Uday\\'s','Bhaskar')`)
     })
@@ -821,7 +821,7 @@ describe('convertQueryToSql', async () => {
         {},
         {
           escapeSingleQuotes: false,
-        },
+        }
       )
       expect(result).toBe(`name in ('Uday's','Bhaskar')`)
     })
@@ -840,7 +840,7 @@ describe('convertQueryToSql', async () => {
         {},
         {
           escapeSingleQuotes: true,
-        },
+        }
       )
       expect(result).toBe(`name = '{
             LIKE: \\'%\\' + "Uday\\'s" + \\'%\\',
@@ -861,7 +861,7 @@ describe('convertQueryToSql', async () => {
         {},
         {
           escapeSingleQuotes: false,
-        },
+        }
       )
       expect(result).toBe(`name = '{
             LIKE: '%' + "Uday's" + '%',
@@ -880,7 +880,7 @@ describe('convertQueryToSql', async () => {
         {},
         {
           escapeSingleQuotes: true,
-        },
+        }
       )
       expect(result).toBe(`name = 'Uday\\'s Accounts Contact\\'s'`)
     })
@@ -895,7 +895,7 @@ describe('convertQueryToSql', async () => {
           name: 'string',
         },
         {},
-        {},
+        {}
       )
       expect(result).toBe(`name = 'Uday's'`)
     })
@@ -913,7 +913,7 @@ describe('convertQueryToSql', async () => {
         {
           useDoubleQuotes: true,
           escapeSingleQuotes: true,
-        },
+        }
       )
       expect(result).toBe(`name = "Uday's"`)
     })

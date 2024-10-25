@@ -5,14 +5,14 @@ const sign = async (
   text: string,
   algorithm = 'SHA-256',
   secret: string,
-  outputFormat = 'hex',
+  outputFormat = 'hex'
 ) => {
   const key = await crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(secret),
     { name: 'HMAC', hash: algorithm },
     false,
-    ['sign'],
+    ['sign']
   )
   const encoder = new TextEncoder()
   const data = encoder.encode(text)

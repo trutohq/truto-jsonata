@@ -6,7 +6,7 @@ describe('sign', async () => {
     const text = 'Hello World'
     const hash = await sign(text, 'SHA-256', 'secret', 'hex')
     expect(hash).toBe(
-      '82ce0d2f821fa0ce5447b21306f214c99240fecc6387779d7515148bbdd0c415',
+      '82ce0d2f821fa0ce5447b21306f214c99240fecc6387779d7515148bbdd0c415'
     )
   })
 
@@ -26,7 +26,7 @@ describe('sign', async () => {
     const text = 'Hello World'
     const hash = await sign(text, 'SHA-512', 'secret', 'base64')
     expect(hash).toBe(
-      'bR0YbsSB8+fR9gTnp0CBFApxOo2LrFaOJX7Rr5WY9k8n8fS9rw7fodMWoad0BkfbOOfegud5QsuYxKCKTRfonw==',
+      'bR0YbsSB8+fR9gTnp0CBFApxOo2LrFaOJX7Rr5WY9k8n8fS9rw7fodMWoad0BkfbOOfegud5QsuYxKCKTRfonw=='
     )
   })
 
@@ -34,7 +34,7 @@ describe('sign', async () => {
     const text = 'Hello World'
     const hash = await sign(text, 'SHA-512', 'secret', 'base64-urlSafe')
     expect(hash).toBe(
-      'bR0YbsSB8-fR9gTnp0CBFApxOo2LrFaOJX7Rr5WY9k8n8fS9rw7fodMWoad0BkfbOOfegud5QsuYxKCKTRfonw',
+      'bR0YbsSB8-fR9gTnp0CBFApxOo2LrFaOJX7Rr5WY9k8n8fS9rw7fodMWoad0BkfbOOfegud5QsuYxKCKTRfonw'
     )
   })
 
@@ -42,7 +42,7 @@ describe('sign', async () => {
     const text = 'Hello World'
     const hash = await sign(text, 'SHA-512', 'secret', 'hex')
     expect(hash).toBe(
-      '6d1d186ec481f3e7d1f604e7a74081140a713a8d8bac568e257ed1af9598f64f27f1f4bdaf0edfa1d316a1a7740647db38e7de82e77942cb98c4a08a4d17e89f',
+      '6d1d186ec481f3e7d1f604e7a74081140a713a8d8bac568e257ed1af9598f64f27f1f4bdaf0edfa1d316a1a7740647db38e7de82e77942cb98c4a08a4d17e89f'
     )
   })
 })

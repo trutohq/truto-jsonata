@@ -1,17 +1,17 @@
-import generateUUID from '../functions/uuid'
+import uuid from '../functions/uuid'
 import { describe, expect, it } from 'vitest'
 
-describe('generateUUID', () => {
+describe('uuid', () => {
   it('should generate a valid UUID', () => {
-    const uuid = generateUUID()
+    const _uuid = uuid()
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-    expect(uuid).toMatch(uuidRegex)
+    expect(_uuid).toMatch(uuidRegex)
   })
 
   it('should generate unique UUIDs', () => {
-    const uuid1 = generateUUID()
-    const uuid2 = generateUUID()
+    const uuid1 = uuid()
+    const uuid2 = uuid()
     expect(uuid1).not.toBe(uuid2)
   })
 })

@@ -1,6 +1,6 @@
 import { encodeBase64 } from 'hono/utils/encode'
 
-function encodebase64(arg: string) {
+function base64encode(arg: string) {
   return encodeBase64(new TextEncoder().encode(arg))
 }
-export default encodebase64
+export default base64encode

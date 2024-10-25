@@ -13,7 +13,7 @@ import decodeHtmlEntities from './decodeHtmlEntities'
 
 const parseMarkedTokenToNotionRequest = (
   tokens: Token[],
-  acc: any[] = [],
+  acc: any[] = []
 ): any[] => {
   return reduce(
     tokens,
@@ -63,7 +63,7 @@ const parseMarkedTokenToNotionRequest = (
       }
       if (token.type === 'paragraph') {
         const groupedChildData = groupBy(childData, x =>
-          x.type === 'image' ? 'image' : 'other',
+          x.type === 'image' ? 'image' : 'other'
         )
         if (!isEmpty(groupedChildData.other)) {
           acc.push({
@@ -123,7 +123,7 @@ const parseMarkedTokenToNotionRequest = (
         })
         each(token.rows, row => {
           const rowChildren = map(row, rowCell =>
-            parseMarkedTokenToNotionRequest([rowCell]),
+            parseMarkedTokenToNotionRequest([rowCell])
           )
           table.table.children.push({
             type: 'table_row',
@@ -139,12 +139,12 @@ const parseMarkedTokenToNotionRequest = (
         const listType = token.items[0].task
           ? 'to_do'
           : token.ordered
-            ? 'numbered_list_item'
-            : 'bulleted_list_item'
+          ? 'numbered_list_item'
+          : 'bulleted_list_item'
         each(token.items, item => {
           const itemChildren = parseMarkedTokenToNotionRequest(item.tokens)
           const groupedItemChildren = groupBy(itemChildren, x =>
-            x.type === 'text' ? 'other' : 'list',
+            x.type === 'text' ? 'other' : 'list'
           )
           acc.push({
             type: listType,
@@ -216,7 +216,7 @@ const parseMarkedTokenToNotionRequest = (
       })
       return acc
     },
-    acc,
+    acc
   )
 }
 

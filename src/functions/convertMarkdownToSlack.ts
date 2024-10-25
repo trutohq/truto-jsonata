@@ -14,7 +14,7 @@ import {
 
 const parseMarkedTokenToSlackRequest = (
   tokens: Token[],
-  acc: any[] = [],
+  acc: any[] = []
 ): any[] => {
   return reduce(
     tokens,
@@ -53,7 +53,7 @@ const parseMarkedTokenToSlackRequest = (
           return acc
         }
         const childDataGroupedByType = groupBy(childData, x =>
-          isString(x) ? 'text' : 'block',
+          isString(x) ? 'text' : 'block'
         )
         if (!isEmpty(childDataGroupedByType.text)) {
           acc.push({
@@ -93,9 +93,9 @@ const parseMarkedTokenToSlackRequest = (
         const listString = join(
           filter(flattenDeep(items), x => !!get(x, 'text.text')).map(
             (x, index) =>
-              `${token.ordered ? `${index + 1}.` : '•'} ${get(x, 'text.text')}`,
+              `${token.ordered ? `${index + 1}.` : '•'} ${get(x, 'text.text')}`
           ),
-          '\n',
+          '\n'
         )
 
         acc.push({
@@ -138,7 +138,7 @@ const parseMarkedTokenToSlackRequest = (
       acc.push(token.raw)
       return acc
     },
-    acc,
+    acc
   )
 }
 

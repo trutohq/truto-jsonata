@@ -1,7 +1,5 @@
-import { randomUUID } from 'crypto'
-
-function generateUUID() {
-  return randomUUID()
+function uuid() {
+  return crypto.randomUUID()
 }
 
-export default generateUUID
+export default uuid

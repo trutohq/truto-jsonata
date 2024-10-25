@@ -13,14 +13,14 @@ function mostSimilar(value: string, possibleValues: string[], threshold = 0.8) {
       const normalizedPossibleValue = getNormalizedString(possibleValue)
       const similarity = diceCoefficient(
         normalizedValue,
-        normalizedPossibleValue,
+        normalizedPossibleValue
       )
       if (similarity > acc.similarity) {
         return { similarity, value: possibleValue }
       }
       return acc
     },
-    { similarity: 0, value: '' },
+    { similarity: 0, value: '' }
   )
   return result.similarity >= threshold ? result.value : value
 }

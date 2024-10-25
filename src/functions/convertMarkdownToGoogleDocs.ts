@@ -13,7 +13,7 @@ const parseMarkedTokenToGoogleDocsRequest = (
   },
   context = {
     level: 0,
-  },
+  }
 ): {
   counter: number
   inserts: Record<string, any>[]
@@ -115,7 +115,7 @@ const parseMarkedTokenToGoogleDocsRequest = (
               },
             ]),
             acc,
-            context,
+            context
           )
         } else {
           parseMarkedTokenToGoogleDocsRequest(childTokens, acc, context)
@@ -215,7 +215,7 @@ const parseMarkedTokenToGoogleDocsRequest = (
           acc,
           {
             level: context.level + 1,
-          },
+          }
         )
         const end = acc.counter
         if (!context.level && token.type === 'list') {
@@ -231,7 +231,7 @@ const parseMarkedTokenToGoogleDocsRequest = (
                   : 'BULLET_DISC_CIRCLE_SQUARE',
               },
             },
-            acc.formats,
+            acc.formats
           )
         }
         return acc
@@ -252,7 +252,7 @@ const parseMarkedTokenToGoogleDocsRequest = (
       acc.counter += textToInsert.length
       return acc
     },
-    acc,
+    acc
   )
 }
 
@@ -287,7 +287,7 @@ const convertMarkdownToGoogleDocs = (text: string, currentCounter = 1) => {
       }
       return acc
     },
-    [] as Record<string, any>[],
+    [] as Record<string, any>[]
   )
   return {
     requests: [...parsedTokens.inserts, ...mergedFormats],

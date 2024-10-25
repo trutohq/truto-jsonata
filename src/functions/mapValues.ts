@@ -16,7 +16,7 @@ function mapValues(
     | undefined,
   mapping: Record<string, unknown> | null | undefined,
   lowerCase = false,
-  defaultValue = null,
+  defaultValue = null
 ):
   | string
   | string[]

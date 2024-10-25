@@ -4,7 +4,7 @@ import { webcrypto as crypto } from 'crypto'
 const digest = async (
   text: string,
   algorithm = 'SHA-256',
-  stringType = 'hex',
+  stringType = 'hex'
 ) => {
   const encoder = new TextEncoder()
   const data = encoder.encode(text)

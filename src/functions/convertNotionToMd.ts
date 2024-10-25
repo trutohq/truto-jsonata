@@ -67,8 +67,8 @@ function convertNotionToMd(block: any) {
           source: data.file
             ? data.file.url
             : data.external
-              ? data.external.url
-              : '',
+            ? data.external.url
+            : '',
         },
       })
     case 'heading_1':
@@ -104,8 +104,8 @@ function convertNotionToMd(block: any) {
           source: data.file
             ? data.file.url
             : data.external
-              ? data.external.url
-              : '',
+            ? data.external.url
+            : '',
         },
       })
     case 'table':

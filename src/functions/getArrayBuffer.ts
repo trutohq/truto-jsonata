@@ -1,5 +1,5 @@
-async function getArayBuffer(file?: Blob) {
+async function getArrayBuffer(file?: Blob) {
   return file ? await file.arrayBuffer() : undefined
 }
 
-export default getArayBuffer
+export default getArrayBuffer

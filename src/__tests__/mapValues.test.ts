@@ -64,7 +64,7 @@ describe('mapValues', async () => {
               type: 'credit_card',
             },
           ],
-          mapping,
+          mapping
         )
         expect(result).toEqual([
           {
@@ -86,7 +86,7 @@ describe('mapValues', async () => {
               type: 'other',
             },
           ],
-          mapping,
+          mapping
         )
         expect(result).toEqual([
           {
@@ -115,7 +115,7 @@ describe('mapValues', async () => {
               },
             },
           ],
-          mapping,
+          mapping
         )
         expect(result).toEqual([
           {

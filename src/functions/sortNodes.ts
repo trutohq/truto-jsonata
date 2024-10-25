@@ -13,7 +13,7 @@ export function sortNodes(
   array: Node[],
   idKey = 'id',
   parentIdKey = 'parent_id',
-  sequenceKey = 'sequence',
+  sequenceKey = 'sequence'
 ): Node[] {
   // Step 1: Create a Map for quick lookup of nodes by their id
   const nodeMap = new Map<string | number, Node>()

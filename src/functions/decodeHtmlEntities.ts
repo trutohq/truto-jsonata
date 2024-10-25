@@ -13,7 +13,7 @@ function decodeHtmlEntities(encodedString: string) {
 
   return encodedString.replace(
     /&amp;|&lt;|&gt;|&quot;|&#39;|&#x2F;|&#x5C;|&#x60;|&#x3D;/g,
-    match => htmlEntities[match],
+    match => htmlEntities[match]
   )
 }
 

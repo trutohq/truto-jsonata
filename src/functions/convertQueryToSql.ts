@@ -68,7 +68,7 @@ const convertToDataType = (
   useDoubleQuotes = false,
   noQuotes = false,
   noQuotesForDate = false,
-  escapeSingleQuotes = false,
+  escapeSingleQuotes = false
 ) => {
   const dataTypeKey = dataType[key]
   if (value === undefined || value === null) {
@@ -103,8 +103,8 @@ const convertToDataType = (
     return noQuotes || noQuotesForDate
       ? date
       : useDoubleQuotes
-        ? `"${date}"`
-        : `'${date}'`
+      ? `"${date}"`
+      : `'${date}'`
   }
   return value
 }
@@ -130,7 +130,7 @@ function convertQueryToSql(
   mapping: Record<string, string> = {},
   dataTypes: Record<string, RequestDataTypes> = {},
   customOperatorMapping: Record<string, string> = {},
-  options: ConvertQueryToSqlOptions = {},
+  options: ConvertQueryToSqlOptions = {}
 ) {
   const conjunction = options.conjunction || 'AND'
   const statement: string[] = []
@@ -145,7 +145,7 @@ function convertQueryToSql(
         mapping,
         dataTypes,
         customOperatorMapping,
-        options,
+        options
       )
       statement.push('(' + orPart + ')')
       continue
@@ -178,7 +178,7 @@ function convertQueryToSql(
           options.useDoubleQuotes,
           options.noQuotes,
           options.noQuotesForDate,
-          options.escapeSingleQuotes,
+          options.escapeSingleQuotes
         )
         if (valueToInsert !== undefined && valueToInsert !== null) {
           statement.push(
@@ -187,7 +187,7 @@ function convertQueryToSql(
               operator: comparator,
               value: valueToInsert,
               useSpace: !options.noSpaceBetweenOperator,
-            }),
+            })
           )
         }
         continue
@@ -208,7 +208,7 @@ function convertQueryToSql(
               options.useDoubleQuotes,
               options.noQuotes,
               options.noQuotesForDate,
-              options.escapeSingleQuotes,
+              options.escapeSingleQuotes
             )
             if (valueToInsert !== undefined && valueToInsert !== null) {
               orStatement.push(
@@ -217,7 +217,7 @@ function convertQueryToSql(
                   operator: eqOperator,
                   value: valueToInsert,
                   useSpace: !options.noSpaceBetweenOperator,
-                }),
+                })
               )
             }
           }
@@ -237,12 +237,12 @@ function convertQueryToSql(
                   options.useDoubleQuotes,
                   options.noQuotes,
                   options.noQuotesForDate,
-                  options.escapeSingleQuotes,
+                  options.escapeSingleQuotes
                 )
               })
               .join(',')})`,
             useSpace: !options.noSpaceBetweenOperator,
-          }),
+          })
         )
         continue
       }
@@ -251,7 +251,7 @@ function convertQueryToSql(
   }
   if (options.groupComparisonInBrackets && statement.length) {
     return statement.reduce(
-      (acc, condition) => `(${acc} ${conjunction} ${condition})`,
+      (acc, condition) => `(${acc} ${conjunction} ${condition})`
     )
   }
   return statement.join(` ${conjunction} `)

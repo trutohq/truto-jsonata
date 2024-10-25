@@ -1,7 +1,7 @@
 import { decodeBase64 } from 'hono/utils/encode'
 
-function decodebase64(arg: string) {
+function base64decode(arg: string) {
   return new TextDecoder('utf-8').decode(decodeBase64(arg))
 }
 
-export default decodebase64
+export default base64decode

@@ -1,6 +1,6 @@
 export default function arrayBufferToBase64(
   buffer: ArrayBuffer,
-  urlSafe = false,
+  urlSafe = false
 ) {
   let binary = ''
   const bytes = new Uint8Array(buffer)
