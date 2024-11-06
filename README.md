@@ -164,15 +164,15 @@ console.log(expression.evaluate({}));
 <details>
 <summary> removeEmptyItems(array)</summary>
 
-Filters out empty items from an array.
+Filters out empty objects from an array.
 
 **Example:**
 
 ```javascript
-const data = [0, 1, false, '', null, undefined, {}, { a: 1 }, []];
+const data = [{}, { a: 1 }, []];
 const expression = trutoJsonata("removeEmptyItems($)");
 console.log(expression.evaluate(data));
-// Output: [1, { a: 1 }]
+// Output: [{ a: 1 }]
 ```
 </details>
 
