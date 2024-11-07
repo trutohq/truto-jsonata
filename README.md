@@ -98,7 +98,7 @@ To use `truto-jsonata`, import the default function and pass your JSONata expres
 
 ```javascript
 
-import  trutoJsonata  from  'truto-jsonata';
+import  trutoJsonata  from  '@truto/truto-jsonata';
 const  expressionString = 'your JSONata expression here';
 const  expression = trutoJsonata(expressionString);
 
@@ -117,7 +117,7 @@ Alternatively, if you already have a JSONata expression and want to register the
 ```javascript
 
 import  jsonata  from  'jsonata';
-import  registerJsonataExtensions  from  'truto-jsonata/registerJsonataExtensions';
+import  registerJsonataExtensions  from  '@truto/truto-jsonata/registerJsonataExtensions';
 const  expression = jsonata('your expression');
 
 registerJsonataExtensions(expression);
@@ -136,28 +136,32 @@ Below is a detailed list of all custom functions added to JSONata expressions, a
 <details>
 <summary>  dtFromIso(datetimeString)</summary>
 
-Converts an ISO date-time string to a JavaScript `luxon` object.
+Converts an ISO date-time string to a [Luxon DateTime](https://moment.github.io/luxon/api-docs/index.html#datetime) object.
 
 **Example:**
 
 ```javascript
-const expression = trutoJsonata("dtFromIso('2024-11-05T12:00:00Z')");
-console.log(expression.evaluate({}));
-// Output: luxon object representing '2024-11-05T12:00:00Z'
+import trutoJsonata from '@truto/truto-jsonata'
+
+const expression = trutoJsonata("$dtFromIso('2024-11-05T12:00:00Z')");
+expression.evaluate({}).then(result => { console.log(result)});
+// Output: DateTime { ts: 2024-11-05T12:00:00.000+00:00, zone: UTC, locale: en-US }
 ```
 </details>
 
 <details>
 <summary> dtFromFormat(datetimeString, format)</summary>
 
-Parses a date-time string according to the specified format and returns a `luxon` object.
+Parses a date-time string according to the specified format and returns a [Luxon DateTime](https://moment.github.io/luxon/api-docs/index.html#datetime) object.
 
 **Example:**
 
 ```javascript
-const expression = trutoJsonata("dtFromFormat('01-11-2022 12:00', 'dd-MM-yyyy HH:mm')");
-console.log(expression.evaluate({}));
-// Output: luxon object representing '2022-11-01T12:00:00.000Z'
+import trutoJsonata from '@truto/truto-jsonata'
+
+const expression = trutoJsonata("$dtFromFormat('01-11-2022 12:00', 'dd-MM-yyyy HH:mm')");
+expression.evaluate({}).then(result => { console.log(result });
+// Output: DateTime { ts: 2022-11-01T12:00:00.000+00:00, zone: UTC, locale: en-US }
 ```
 </details>
 
@@ -169,10 +173,15 @@ Filters out empty objects from an array.
 **Example:**
 
 ```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
 const data = [{}, { a: 1 }, []];
-const expression = trutoJsonata("removeEmptyItems($)");
-console.log(expression.evaluate(data));
-// Output: [{ a: 1 }]
+const expression = trutoJsonata("$removeEmptyItems(data)");
+expression.evaluate({ data }).then(result => { console.log(result); });
+
+//Output: [ { a: 1 } ]
+
+
 ```
 </details>
 
@@ -184,10 +193,24 @@ Removes all properties with empty values (`null`, `undefined`, empty string, emp
 **Example:**
 
 ```javascript
-const data = [];
-const expression = trutoJsonata("removeEmpty($)");
-console.log(expression.evaluate(data));
-// Output: undefined
+import trutoJsonata from '@truto/truto-jsonata';
+
+const data =   ["1", "2", "3", ""];
+const blankData = []
+
+let expression = trutoJsonata("$removeEmpty(data)");
+expression.evaluate({ data }).then(result => { console.log(result); });
+
+//another example
+expression = trutoJsonata("$removeEmpty(blankData)");
+expression.evaluate({ blankData }).then(result => { console.log(result); });
+
+/* Output: 
+[ "1", "2", "3", "" ]
+undefined 
+*/
+
+
 ```
 </details>
 
@@ -201,8 +224,12 @@ Converts a currency amount to its smallest subunit (e.g., dollars to cents).
 **Example:**
 
 ```javascript
-const expression = trutoJsonata("convertCurrencyToSubunit(5.50, 'USD')");
-console.log(expression.evaluate({}));
+import trutoJsonata from '@truto/truto-jsonata';
+
+
+const expression = trutoJsonata("$convertCurrencyToSubunit(5.50, 'USD')");
+expression.evaluate({}).then(result => { console.log(result); });
+
 // Output: 550
 ```
 </details>
@@ -215,8 +242,12 @@ Converts an amount in subunits back to the main currency unit.
 **Example:**
 
 ```javascript
-const expression = trutoJsonata("convertCurrencyFromSubunit(550, 'USD')");
-console.log(expression.evaluate({}));
+import trutoJsonata from '@truto/truto-jsonata';
+
+
+const expression = trutoJsonata("$convertCurrencyFromSubunit(550, 'USD')");
+expression.evaluate({}).then(result => { console.log(result); });
+
 // Output: 5.50
 ```
 </details>
@@ -229,18 +260,19 @@ Converts a query object into an SQL query string.
 **Example:**
 
 ```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
+
 const data = {
   name: { eq: 'John' },
   age: { gte: '30' },
   city: { in: ['New York', 'Los Angeles'] },
-  or: [
-    { status: { eq: 'active' } },
-    { status: { eq: 'pending' } }
-  ]
+
 };
-const expression = trutoJsonata("convertQueryToSql($)");
-console.log(expression.evaluate(data));
-// Output: "name" = 'John' AND "age" >= 30 AND ("city" = 'New York' OR "city" = 'Los Angeles') AND (("status" = 'active') OR ("status" = 'pending'))
+const expression = trutoJsonata("$convertQueryToSql(data)");
+expression.evaluate({data}).then(result => { console.log(result); });
+
+// Output: name = John AND age >= 30 AND city in (New York,Los Angeles)
 ```
 </details>
 
@@ -252,36 +284,24 @@ Transforms an object, array, string, or number based on a provided mapping. The 
 **Example:**
 
 ```javascript
-import trutoJsonata from 'truto-jsonata';
-const data = {
-  name: 'John Doe',
-  age: 30,
-  hobbies: ['Reading', 'Traveling'],
-  address: {
-    city: 'New York',
-    zip: '10001'
-  }
+
+import trutoJsonata from '@truto/truto-jsonata';
+
+const roleKey = "1";
+const roleMapping = {
+  "1": "owner",
+  "2": "admin",
+  "3": "member",
+  "4": "guest"
 };
-const mapping = {
-  'john doe': 'JD',
-  'new york': 'NYC',
-  reading: 'Books',
-  traveling: 'Trips'
-};
-const expression = trutoJsonata("mapValues($, mapping, true, 'Unknown')");
-console.log(expression.evaluate({ data, mapping }));
-/*
-Output:
-{
-  name: 'JD',
-  age: 30,
-  hobbies: ['Books', 'Trips'],
-  address: {
-    city: 'NYC',
-    zip: '10001'
-  }
-}
-*/
+
+const roleExpression = trutoJsonata("$mapValues(roleKey, roleMapping, true, 'Unknown')");
+roleExpression.evaluate({ roleKey, roleMapping }).then(result => {
+  console.log(result);
+});
+
+//Output: owner
+
 ```
 </details>
 
@@ -293,7 +313,7 @@ Converts an SQL response (typically with column metadata and row data) into an a
 **Example:**
 
 ```javascript
-import trutoJsonata from 'truto-jsonata';
+import trutoJsonata from '@truto/truto-jsonata';
 const columns = [
   { name: 'id' },
   { name: 'name' },
@@ -305,8 +325,8 @@ const data = [
   [3, 'Charlie', 35]
 ];
 const key = 'name';
-const expression = trutoJsonata("zipSqlResponse($columns, $data, $key)");
-console.log(expression.evaluate({ columns, data, key }));
+const expression = trutoJsonata("$zipSqlResponse(columns, data, key)");
+expression.evaluate({ columns, data, key }).then(result => { console.log(result); });
 /*
 Output:
 [
@@ -326,9 +346,11 @@ Returns the first argument that is not empty.
 **Example:**
 
 ```javascript
-const expression = trutoJsonata("firstNonEmpty('', null, 'First Non-Empty', 'Another')");
-console.log(expression.evaluate({}));
-// Output: 'First Non-Empty'
+import trutoJsonata from '@truto/truto-jsonata';
+
+const expression = trutoJsonata("$firstNonEmpty( null, ['3'], undefined)");
+expression.evaluate({}).then(result => { console.log(result); });
+// Output: [ "3" ]
 ```
 </details>
 
@@ -340,8 +362,11 @@ Parses a JSON string into an object.
 **Example:**
 
 ```javascript
-const expression = trutoJsonata("jsonParse('{\"name\":\"Alice\"}')");
-console.log(expression.evaluate({}));
+import trutoJsonata from '@truto/truto-jsonata';
+
+const expression = trutoJsonata("$jsonParse('{\"name\":\"Alice\"}')");
+expression.evaluate({}).then(result => { console.log(result); });
+
 // Output: { name: 'Alice' }
 ```
 </details>
@@ -354,8 +379,10 @@ Returns the MIME type based on the file extension.
 **Example:**
 
 ```javascript
-const expression = trutoJsonata("getMimeType('html')");
-console.log(expression.evaluate({}));
+import trutoJsonata from '@truto/truto-jsonata';
+
+const expression = trutoJsonata("$getMimeType('html')");
+expression.evaluate({}).then(result => { console.log(result); });
 // Output: 'text/html'
 ```
 </details>
@@ -368,8 +395,10 @@ Generates a new UUID (version 4).
 **Example:**
 
 ```javascript
-const expression = trutoJsonata("uuid()");
-console.log(expression.evaluate({}));
+import trutoJsonata from '@truto/truto-jsonata';
+
+const expression = trutoJsonata("$uuid()");
+expression.evaluate({ }).then(result => { console.log(result); });
 // Output: A UUID string
 ```
 </details>
@@ -383,13 +412,13 @@ Converts a `Blob` file to an `ArrayBuffer`. If no file is provided, the function
 **Example:**
 
 ```javascript
-import trutoJsonata from 'truto-jsonata';
+import trutoJsonata from '@truto/truto-jsonata';
 const file = new Blob(['Hello, World!'], { type: 'text/plain' });
-const expression = trutoJsonata("getArrayBuffer($)");
-expression.evaluate({ file }).then(result => {
-  console.log(result);
-  // Output: ArrayBuffer { byteLength: 13 } - An ArrayBuffer representation of 'Hello, World!'
-});
+const expression = trutoJsonata("$getArrayBuffer(file)");
+expression.evaluate({ file}).then(result => { console.log(result); });
+
+// Output: ArrayBuffer(13) [ 72, 101, 108, 108, 111, 44, 32, 87, 111, 114, 108, 100, 33 ]
+
 ```
 </details>
 
@@ -403,12 +432,19 @@ Creates a `Blob` object from content with the specified MIME type.
 **Example:**
 
 ```javascript
-import trutoJsonata from 'truto-jsonata';
+import trutoJsonata from '@truto/truto-jsonata';
 const content = ['Hello, World!'];
 const options = { type: 'text/plain' };
-const expression = trutoJsonata("blob($content, $options)");
+const expression = trutoJsonata("$blob(content, options)");
 console.log(expression.evaluate({ content, options }));
-// Output: Blob { size: 13, type: "text/plain" } - A Blob object with "Hello, World!" as content and MIME type 'text/plain'
+
+/* Output: 
+
+Blob (13 bytes) {
+  type: "text/plain;charset=utf-8"
+}
+*/
+
 ```
 </details>
 
@@ -421,13 +457,13 @@ Generates a cryptographic hash of the input text using a specified hashing algor
 **Example:**
 
 ```javascript
-import trutoJsonata from 'truto-jsonata';
+import trutoJsonata from '@truto/truto-jsonata';
 const text = 'Hello, World!';
 const algorithm = 'SHA-256';
 const stringType = 'hex';
-const expression = trutoJsonata("digest($text, $algorithm, $stringType)");
-console.log(expression.evaluate({ text, algorithm, stringType }));
-// Output: "a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b53a30b4e527b9fd4" - Hexadecimal SHA-256 hash of "Hello, World!"
+const expression = trutoJsonata("$digest(text, algorithm, stringType)");
+expression.evaluate({ text, algorithm, stringType }).then(result => { console.log(result); });
+// Output: "a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b53a30b4e527b9fd4" 
 ```
 </details>
 
@@ -441,15 +477,15 @@ Generates a cryptographic HMAC signature of the input text using a specified has
 **Example:**
 
 ```javascript
-import trutoJsonata from 'truto-jsonata';
+import trutoJsonata from '@truto/truto-jsonata';
 const text = 'Hello, World!';
 const algorithm = 'SHA-256';
 const secret = 'mySecretKey';
 const outputFormat = 'hex';
-const expression = trutoJsonata("sign($text, $algorithm, $secret, $outputFormat)");
+const expression = trutoJsonata("$sign(text, algorithm, secret, outputFormat)");
 expression.evaluate({ text, algorithm, secret, outputFormat }).then(result => {
-  console.log(result);
-  // Output: "7a60d197fc6a4e91ab6f09f17d74e5a62d3a57ef6c4dc028ef2b8f38a328d2b9" - Hexadecimal HMAC signature of "Hello, World!" using SHA-256 and the secret key
+  console.log(result)
+  // Output: "7a60d197fc6a4e91ab6f09f17d74e5a62d3a57ef6c4dc028ef2b8f38a328d2b9" 
 });
 ```
 </details> 
@@ -463,23 +499,27 @@ Converts an XML string into a JavaScript object.
 **Example:**
 
 ```javascript
-import trutoJsonata from 'truto-jsonata';
+import trutoJsonata from '@truto/truto-jsonata';
+
 const xmlData = `
   <note>
     <to>User</to>
     <message>Hello, World!</message>
   </note>
 `;
-const expression = trutoJsonata("xmlToJs($xmlData)");
-const result = expression.evaluate({ xmlData });
-console.log(result);
+const expression = trutoJsonata("$xmlToJs(xmlData)");
+expression.evaluate({ xmlData }).then(result => { console.log(result); });
 /*
 Output:
 {
   note: {
-    to: { _text: "User" },
-    message: { _text: "Hello, World!" }
-  }
+    to: {
+      _text: "User",
+    },
+    message: {
+      _text: "Hello, World!",
+    },
+  },
 }
 */
 ```
@@ -493,16 +533,15 @@ Converts a JavaScript object into an XML string.
 **Example:**
 
 ```javascript
-import trutoJsonata from 'truto-jsonata';
+import trutoJsonata from '@truto/truto-jsonata';
 const jsonData = {
   note: {
     to: { _text: "User" },
     message: { _text: "Hello, World!" }
   }
 };
-const expression = trutoJsonata("jsToXml($jsonData)");
-const result = expression.evaluate({ jsonData });
-console.log(result);
+const expression = trutoJsonata("$jsToXml(jsonData)");
+expression.evaluate({ jsonData}).then(result => { console.log(result); });
 /*
 Output:
 <note>
@@ -520,22 +559,48 @@ Output:
 <details>
 <summary>convertMarkdownToGoogleDocs(text, currentCounter)</summary>
 
-Converts Markdown text into a Google Docs API-compatible request format for applying text styles and content. This function uses `Lexer` to tokenize Markdown, applies formatting, and then merges overlapping format ranges to minimize the number of requests.
+Converts Markdown text into a Google Docs API-compatible request format for applying text styles and content. For more details on the Google Docs API request format, refer to the [Google Docs API documentation](https://developers.google.com/docs/api/reference/rest/v1/documents/request).
 
 **Example:**
 
 ```javascript
-import trutoJsonata from 'truto-jsonata';
+import trutoJsonata from '@truto/truto-jsonata';
 
-// Define Markdown text to convert
 const markdownText = `
 # Hello, World!
 This is a *bold* statement.
 `;
 
 // Use convertMarkdownToGoogleDocs to convert Markdown to Google Docs format
-const expression = trutoJsonata("convertMarkdownToGoogleDocs($markdownText)");
-const result = expression.evaluate({ markdownText });
+const expression = trutoJsonata("$convertMarkdownToGoogleDocs(markdownText)");
+expression.evaluate({ markdownText}).then(result => { console.log(result); });
+
+//Output :
+
+/*
+{
+  requests: [
+    {
+      insertText: [Object ...],
+    }, {
+      insertText: [Object ...],
+    }, {
+      insertText: [Object ...],
+    }, {
+      insertText: [Object ...],
+    }, {
+      insertText: [Object ...],
+    }, {
+      insertText: [Object ...],
+    }, {
+      updateParagraphStyle: [Object ...],
+    }, {
+      updateTextStyle: [Object ...],
+    }
+  ],
+}
+*/
+
 ```
 </details>
 
@@ -547,7 +612,7 @@ Converts Markdown text into a format compatible with Notion.
 **Example:**
 
 ```javascript
-import trutoJsonata from 'truto-jsonata';
+import trutoJsonata from '@truto/truto-jsonata';
 
 // Define Markdown text to convert
 const markdownText = `
@@ -556,16 +621,23 @@ This is some **bold** text.
 `;
 
 // Use convertMarkdownToNotion to transform Markdown into Notion block format
-const expression = trutoJsonata("convertMarkdownToNotion($markdownText)");
-const result = expression.evaluate({ markdownText });
-
-console.log(result);
+const expression = trutoJsonata("$convertMarkdownToNotion(markdownText)");
+expression.evaluate({ markdownText}).then(result => { console.log(result); });
 /*
 Output:
 {
   children: [
-    // Notion blocks derived from the Markdown, such as heading and text blocks
-  ]
+    {
+      type: "paragraph",
+      paragraph: [Object ...],
+    }, {
+      type: "heading_1",
+      heading_1: [Object ...],
+    }, {
+      type: "paragraph",
+      paragraph: [Object ...],
+    }
+  ],
 }
 */
 ```
@@ -579,7 +651,7 @@ Converts Markdown text into a format compatible with Slack messages.
 **Example:**
 
 ```javascript
-import trutoJsonata from 'truto-jsonata';
+import trutoJsonata from '@truto/truto-jsonata';
 
 // Define Markdown text to convert
 const markdownText = `
@@ -588,14 +660,32 @@ This is a message with *italic* and **bold** text.
 `;
 
 // Use convertMarkdownToSlack to transform Markdown into Slack format
-const expression = trutoJsonata("convertMarkdownToSlack($markdownText)");
-const result = expression.evaluate({ markdownText });
+const expression = trutoJsonata("$convertMarkdownToSlack(markdownText)");
+expression.evaluate({ markdownText}).then(result => { console.log(result); });
 
-console.log(result);
 /*
 Output:
 [
-  // Slack-compatible message elements with formatting for headings, bold, and italics
+  {
+    type: "section",
+    text: {
+      type: "mrkdwn",
+      text: "\n",
+    },
+  }, {
+    type: "header",
+    text: {
+      type: "plain_text",
+      text: "Hello, Slack!",
+      emoji: true,
+    },
+  }, {
+    type: "section",
+    text: {
+      type: "mrkdwn",
+      text: "This is a message with *italic* and *bold* text.",
+    },
+  }
 ]
 */
 ```
@@ -609,7 +699,7 @@ Transforms a list of Notion blocks into a Markdown-formatted string, preserving 
 **Example:**
 
 ```javascript
-import trutoJsonata from 'truto-jsonata';
+import trutoJsonata from '@truto/truto-jsonata';
 
 // Define Notion blocks structure to convert
 const notionBlocks = [
@@ -624,12 +714,10 @@ const notionBlocks = [
   },
   { type: 'bulleted_list_item', text: { content: 'List item 2' } }
 ];
+const expression = trutoJsonata("$convertNotionToMarkdown(notionBlocks)");
 
-// Use convertNotionToMarkdown to transform Notion blocks into Markdown
-const expression = trutoJsonata("convertNotionToMarkdown($notionBlocks)");
-const result = expression.evaluate({ notionBlocks });
+expression.evaluate({ notionBlocks}).then(result => { console.log(result); });
 
-console.log(result);
 /*
 Output:
 # Introduction
@@ -644,36 +732,6 @@ This is a paragraph.
 </details>
 
 <details>
-<summary>convertNotionToMd(block)</summary>
-
-Converts a single Notion block into Markdown format based on the block’s type, such as paragraphs, headings, lists, quotes, and more.
-
-**Example:**
-
-```javascript
-import trutoJsonata from 'truto-jsonata';
-
-// Define a Notion block to convert
-const notionBlock = {
-  type: 'heading_1',
-  heading_1: {
-    rich_text: [{ plain_text: 'Welcome to Notion Markdown' }]
-  }
-};
-
-// Use convertNotionToMd to transform a Notion block into Markdown
-const expression = trutoJsonata("convertNotionToMd($notionBlock)");
-const result = expression.evaluate({ notionBlock });
-
-console.log(result);
-/*
-Output:
-# Welcome to Notion Markdown
-*/
-```
-</details>
-
-<details>
 <summary>convertHtmlToMarkdown(htmlString)</summary>
 
 Converts HTML content to Markdown format.
@@ -681,7 +739,7 @@ Converts HTML content to Markdown format.
 **Example:**
 
 ```javascript
-import trutoJsonata from 'truto-jsonata';
+import trutoJsonata from '@truto/truto-jsonata';
 
 // Define an HTML string to convert
 const htmlContent = `
@@ -694,18 +752,20 @@ const htmlContent = `
 `;
 
 // Use convertHtmlToMarkdown to transform HTML into Markdown
-const expression = trutoJsonata("convertHtmlToMarkdown($htmlContent)");
-const result = expression.evaluate({ htmlContent });
+const expression = trutoJsonata("$convertHtmlToMarkdown(htmlContent)");
+expression.evaluate({ htmlContent }).then(result => { console.log(result); });
 
-console.log(result);
 /*
 Output:
-# Welcome to Markdown
+
+Welcome to Markdown
+===================
 
 This is a **bold** statement.
 
-- Item 1
-- Item 2
+*   Item 1
+*   Item 2
+
 */
 ```
 </details>
@@ -727,8 +787,12 @@ Returns an array of elements from `array1` not in `array2`
 **Example:**
 
 ```javascript
-const expression = trutoJsonata("difference([1, 2, 3], [2, 3])");
-console.log(expression.evaluate({}));
+import trutoJsonata from '@truto/truto-jsonata';
+
+const dataArray = [1, 2, 3]
+const differentArray = [2, 3]
+const expression = trutoJsonata("$difference(dataArray,differentArray)");
+expression.evaluate({}).then(result => { console.log(result); });
 // Output: [1]
 ```
 </details>
@@ -741,14 +805,41 @@ Groups the elements of an array based on the given iteratee (key).
 **Example:**
 
 ```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
 const data = [
   { type: 'fruit', name: 'apple' },
   { type: 'vegetable', name: 'carrot' },
   { type: 'fruit', name: 'banana' }
 ];
-const expression = trutoJsonata("groupBy($, 'type')");
-console.log(expression.evaluate(data));
-// Output: { fruit: [...], vegetable: [...] }
+const expression = trutoJsonata("$groupBy(data, 'type')");
+
+expression.evaluate({ data }).then(result => { console.log(result); });
+
+/*
+Output:
+
+
+{
+  fruit: [
+    {
+      type: "fruit",
+      name: "apple",
+    }, {
+      type: "fruit",
+      name: "banana",
+    }
+  ],
+  vegetable: [
+    {
+      type: "vegetable",
+      name: "carrot",
+    }
+  ],
+}
+
+*/
+
 ```
 </details>
 
@@ -760,12 +851,15 @@ Creates an object composed of keys generated from the results of running each el
 **Example:**
 
 ```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
 const data = [
   { id: 'a', value: 1 },
   { id: 'b', value: 2 }
 ];
-const expression = trutoJsonata("keyBy($, 'id')");
-console.log(expression.evaluate(data));
+const expression = trutoJsonata("$keyBy(data, 'id')");
+
+expression.evaluate({ data }).then(result => { console.log(result); });
 // Output: { a: { id: 'a', value: 1 }, b: { id: 'b', value: 2 } }
 ```
 </details>
@@ -778,9 +872,13 @@ Creates an object composed of the selected `keys`
 **Example:**
 
 ```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
 const data = { name: 'Alice', age: 30, email: 'alice@example.com' };
-const expression = trutoJsonata("pick($, ['name', 'email'])");
-console.log(expression.evaluate(data));
+const expression = trutoJsonata("$pick(data, ['name', 'email'])");
+
+expression.evaluate({ data }).then(result => { console.log(result); });
+
 // Output: { name: 'Alice', email: 'alice@example.com' }
 ```
 </details>
@@ -793,9 +891,13 @@ Creates an object without the specified `keys`
 **Example:**
 
 ```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
 const data = { name: 'Alice', age: 30, email: 'alice@example.com' };
-const expression = trutoJsonata("omit($, ['age'])");
-console.log(expression.evaluate(data));
+const expression = trutoJsonata("$omit(data, ['age'])");
+
+expression.evaluate({ data }).then(result => { console.log(result); });
+
 // Output: { name: 'Alice', email: 'alice@example.com' }
 ```
 </details>
@@ -808,9 +910,12 @@ Creates an array with all falsey values removed.
 **Example:**
 
 ```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
 const data = [0, 1, false, 2, '', 3];
-const expression = trutoJsonata("compact($)");
-console.log(expression.evaluate(data));
+const expression = trutoJsonata("$compact(data)");
+
+expression.evaluate({ data }).then(result => { console.log(result); });
 // Output: [1, 2, 3]
 ```
 </details>
@@ -823,9 +928,13 @@ Joins the elements of an array into a string, separated by `separator`
 **Example:**
 
 ```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
 const data = ['apple', 'banana', 'cherry'];
-const expression = trutoJsonata("join($, '; ')");
-console.log(expression.evaluate(data));
+const expression = trutoJsonata("$join(data, '; ')");
+
+expression.evaluate({ data }).then(result => { console.log(result); });
+
 // Output: 'apple; banana; cherry'
 ```
 </details>
@@ -838,49 +947,105 @@ Sorts the collection based on `iteratees` and `orders`
 **Example:**
 
 ```javascript
+
+import trutoJsonata from '@truto/truto-jsonata';
+
 const data = [
   { name: 'Alice', age: 30 },
   { name: 'Bob', age: 25 }
 ];
-const expression = trutoJsonata("orderBy($, ['age'], ['desc'])");
-console.log(expression.evaluate(data));
-// Output: Sorted array by age in descending order
+const expression = trutoJsonata("$orderBy(data, ['age'], ['desc'])");
+
+expression.evaluate({ data }).then(result => { console.log(result); });
+
+/* Output: 
+[
+  {
+    name: "Alice",
+    age: 30,
+  }, {
+    name: "Bob",
+    age: 25,
+  }
+]
+*/
 ```
 </details>
 
 <details>
-<summary>find(collection, predicate)</summary>
+<summary>find(collection, attr)</summary>
 
-Returns the first element in the collection that matches the predicate
-
+Returns a new array containing only the elements that satisfy the attr condition 
+(i.e. non-falsy values for attr)
 **Example:**
 
 ```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
 const data = [
-  { id: 1, active: false },
-  { id: 2, active: true }
+  {active : false},
+  {active: "" },
+  {active: true },
 ];
-const expression = trutoJsonata("find($, { active: true })");
-console.log(expression.evaluate(data));
-// Output: { id: 2, active: true }
+const otherData = [{ name: 'John' }]
+
+const expression = trutoJsonata("$find(data, 'active')");
+const otherExpression =  trutoJsonata("$find(otherData, 'name')");
+
+expression.evaluate({ data }).then(result => { console.log(result); });
+otherExpression.evaluate({ otherData }).then(result => { console.log(result); });
+
+
+
+/* Output: 
+
+{
+  active: true,
+}
+{
+  name: "John",
+}
+*/
 ```
 </details>
 
 <details>
 <summary>lofilter(collection, predicate)</summary>
 
-Filters the collection based on the [`predicate`]
+Filters the collection based on the `predicate`
 
 **Example:**
 
 ```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
 const data = [
-  { id: 1, active: false },
-  { id: 2, active: true }
+  {active : false},
+  {active: "" },
+  {active: true },
 ];
-const expression = trutoJsonata("lofilter($, { active: true })");
-console.log(expression.evaluate(data));
-// Output: [ { id: 2, active: true } ]
+const otherData = [{ name: 'John' }]
+
+const expression = trutoJsonata("$lofilter(data, 'active')");
+const otherExpression =  trutoJsonata("$lofilter(otherData, 'name')");
+
+expression.evaluate({ data }).then(result => { console.log(result); });
+otherExpression.evaluate({ otherData }).then(result => { console.log(result); });
+/*
+Output:
+
+[
+  {
+    active: true,
+  }
+]
+[
+  {
+    name: "John",
+  }
+]
+*/
+
 ```
 </details>
 
@@ -892,9 +1057,12 @@ Returns an array of the object's own enumerable property values.
 **Example:**
 
 ```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
 const data = { a: 1, b: 2, c: 3 };
-const expression = trutoJsonata("values($)");
-console.log(expression.evaluate(data));
+const expression = trutoJsonata("$values(data)");
+
+expression.evaluate({ data }).then(result => { console.log(result); });
 // Output: [1, 2, 3]
 ```
 </details>
@@ -907,22 +1075,39 @@ console.log(expression.evaluate(data));
 <details>
 <summary>parseUrl(urlString)</summary>
 
-Parses a URL string and returns an object containing its components (protocol, host, pathname, etc.).
+Parses a URL string and returns a [URL object](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL)
 
 **Example:**
 
 ```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
 const data = 'https://example.com/path?query=123#hash';
-const expression = trutoJsonata("parseUrl($)");
-console.log(expression.evaluate(data));
-// Output:
-// {
-//   protocol: 'https:',
-//   host: 'example.com',
-//   pathname: '/path',
-//   search: '?query=123',
-//   hash: '#hash'
-// }
+const expression = trutoJsonata("$parseUrl(data)");
+
+expression.evaluate({ data }).then(result => { console.log(result); });
+
+/*
+Output:
+URL {
+  href: "https://example.com/path?query=123#hash",
+  origin: "https://example.com",
+  protocol: "https:",
+  username: "",
+  password: "",
+  host: "example.com",
+  hostname: "example.com",
+  port: "",
+  pathname: "/path",
+  hash: "#hash",
+  search: "?query=123",
+  searchParams: URLSearchParams {
+    "query": "123",
+  },
+  toJSON: [Function: toJSON],
+  toString: [Function: toString],
+}
+*/
 ```
 </details>
 
@@ -944,7 +1129,9 @@ Finds the most similar string from a list of possible values based on the Dice C
 **Example Usage:**
 
 ```javascript
-import trutoJsonata from 'truto-jsonata';
+import trutoJsonata from '@truto/truto-jsonata';
+
+import trutoJsonata from '@truto/truto-jsonata';
 
 // Define input and possible values
 const input = 'appl';
@@ -952,10 +1139,9 @@ const possibleValues = ['apple', 'apricot', 'banana'];
 const threshold = 0.8;
 
 // Use mostSimilar to find the closest match
-const expression = trutoJsonata("mostSimilar($input, $possibleValues, $threshold)");
-const result = expression.evaluate({ input, possibleValues, threshold });
+const expression = trutoJsonata("$mostSimilar(input, possibleValues, threshold)");
+expression.evaluate({ input, possibleValues, threshold }).then(result => { console.log(result); });
 
-console.log(result);
 // Output: 'apple' (since 'apple' is the most similar to 'appl' and exceeds the similarity threshold)
 ```
 </details>
@@ -988,7 +1174,7 @@ Each node should follow this format:
 **Example Usage:**
 
 ```javascript
-import trutoJsonata from 'truto-jsonata';
+import trutoJsonata from '@truto/truto-jsonata';
 
 // Define an array of nodes to be sorted
 const nodes = [
@@ -1000,10 +1186,8 @@ const nodes = [
 ];
 
 // Use sortNodes to create and flatten the hierarchical structure
-const expression = trutoJsonata("sortNodes($nodes)");
-const result = expression.evaluate({ nodes });
-
-console.log(result);
+const expression = trutoJsonata("$sortNodes(nodes)");
+expression.evaluate({ nodes }).then(result => { console.log(result); });
 /*
 Output:
 [
@@ -1025,8 +1209,11 @@ Wraps `value` with `wrapper` and `endWrapper` (if provided). If `endWrapper` is 
 **Example:**
 
 ```javascript
-const expression = trutoJsonata("wrap('content', '<div>', '</div>')");
-console.log(expression.evaluate({}));
+import trutoJsonata from '@truto/truto-jsonata';
+const expression = trutoJsonata("$wrap('content', '<div>', '</div>')");
+
+expression.evaluate({}).then(result => { console.log(result); });
+
 // Output: '<div>content</div>'
 ```
 </details>
@@ -1039,8 +1226,10 @@ Encodes the input data in Base64.
 **Example:**
 
 ```javascript
-const expression = trutoJsonata("base64encode('Hello, World!')");
-console.log(expression.evaluate({}));
+import trutoJsonata from '@truto/truto-jsonata';
+const expression = trutoJsonata("$base64encode('Hello, World!')");
+
+expression.evaluate({}).then(result => { console.log(result); });
 // Output: 'SGVsbG8sIFdvcmxkIQ=='
 ```
 </details>
@@ -1053,14 +1242,15 @@ Decodes a Base64-encoded string.
 **Example:**
 
 ```javascript
-const expression = trutoJsonata("base64decode('SGVsbG8sIFdvcmxkIQ==')");
-console.log(expression.evaluate({}));
+import trutoJsonata from '@truto/truto-jsonata';
+const expression = trutoJsonata("$base64decode('SGVsbG8sIFdvcmxkIQ==')");
+
+expression.evaluate({}).then(result => { console.log(result); });
+
 // Output: 'Hello, World!'
 ```
 </details>
 
-
-*Note: This library builds upon the functionality of JSONata and Lodash. Familiarity with these libraries will help you leverage the full potential of `truto-jsonata`.*
 
   
 
