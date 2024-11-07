@@ -607,7 +607,7 @@ expression.evaluate({ markdownText}).then(result => { console.log(result); });
 <details>
 <summary>convertMarkdownToNotion(markdown)</summary>
 
-Converts Markdown text into a format compatible with Notion.
+Converts Markdown text into a format compatible with Notion. For more details on the Notion API block format, refer to the [Notion Blocks Documentation](https://developers.notion.com/reference/block).
 
 **Example:**
 
