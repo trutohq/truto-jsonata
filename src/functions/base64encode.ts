@@ -1,6 +1,15 @@
-import { encodeBase64 } from 'hono/utils/encode'
+import { Buffer } from 'buffer';
 
-function base64encode(arg: string) {
-  return encodeBase64(new TextEncoder().encode(arg))
+function encodeBase64(data: Uint8Array): string {
+  return Buffer.from(data).toString('base64');
 }
-export default base64encode
+
+function base64encode(arg: string, urlSafe = false) {
+  const encoded = encodeBase64(new TextEncoder().encode(arg));
+  if (urlSafe) {
+    return encoded.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  }
+  return encoded;
+}
+
+export default base64encode;
