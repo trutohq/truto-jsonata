@@ -712,7 +712,9 @@ const caseInsensitiveMapping = {
 const caseInsensitiveExpression = trutoJsonata("$mapValues(caseInsensitiveKey, caseInsensitiveMapping, false)");
 
 caseInsensitiveExpression.evaluate({ caseInsensitiveKey, caseInsensitiveMapping }).then(result => {
-  console.log(result); // Output: "Administrator"
+  console.log(result); 
+  // Output: "Administrator"
+  // Keys are coverted to lowerCase and matched here
 });
 
 // Example 4: Array input
