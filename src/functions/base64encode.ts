@@ -1,15 +1,16 @@
-import { Buffer } from 'buffer';
-
-function encodeBase64(data: Uint8Array): string {
-  return Buffer.from(data).toString('base64');
-}
-
-function base64encode(arg: string, urlSafe = false) {
-  const encoded = encodeBase64(new TextEncoder().encode(arg));
-  if (urlSafe) {
-    return encoded.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+function base64encode(input: string, urlSafe = false): string {
+  let binary = '';
+  let bytes: Uint8Array;
+  bytes = new TextEncoder().encode(input);
+  const len = bytes.length;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
   }
-  return encoded;
+  let base64 = btoa(binary);
+  if (urlSafe) {
+    base64 = base64.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  }
+  return base64;
 }
 
 export default base64encode;

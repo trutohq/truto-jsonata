@@ -1,16 +1,18 @@
-function decodeBase64(input: string): Uint8Array {
-  return Uint8Array.from(Buffer.from(input, 'base64'));
-}
+function base64decode(base64: string, urlSafe = false): string {
 
-function base64decode(arg: string, urlSafe = false) {
   if (urlSafe) {
-    arg = arg.replace(/-/g, '+').replace(/_/g, '/');
+    base64 = base64
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');  
   }
-  try {
-    return new TextDecoder('utf-8').decode(decodeBase64(arg));
-  } catch (error) {
-    throw new Error('Invalid base64 string');
+  const binary = atob(base64);
+  const len = binary.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binary.charCodeAt(i);
   }
+  return new TextDecoder().decode(bytes);
 }
 
 export default base64decode;
+
