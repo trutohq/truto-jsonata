@@ -727,7 +727,7 @@ roleExpression3.evaluate({ roleKeysArray, roleMapping }).then(result => {
   console.log(result); // Output: ["owner", "member", "5"]
 });
 
-// Example 5: Object input with nested keys
+// Example 5: Object input with nested keys (refer roleMapping above)
 const userRoles = {
   user1: "1",
   user2: "2",
