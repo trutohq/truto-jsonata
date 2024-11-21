@@ -208,7 +208,66 @@ expression.evaluate({}).then(result => { console.log(result); });
 
 <details>
 <summary>convertQueryToSql(query, keysToMap = [], mapping = {}, dataTypes = {}, customOperatorMapping = {}, options = {})</summary>
+
+
 Converts a query object into an SQL query string.
+
+**Parameters**:
+
+- **`query`**  
+  The query object to be converted into SQL.  
+
+- **`keysToMap`** _(Optional)_  
+  A list of keys that should be processed in the SQL conversion.  
+- **`mapping`** _(Optional)_  
+  An object to map the original keys to SQL-compatible keys.  
+- **`dataTypes`** _(Optional)_  
+  An object that specifies the data type for each field in the query.  
+
+  Supported Data Types:
+
+  - `string`
+  - `double_quote_string`
+  - `number`
+  - `boolean`
+  - `dotnetdate`
+
+- **`customOperatorMapping`** _(Optional)_  
+  An object to provide a custom mapping for operators (e.g., replacing `eq` with `=`).  
+
+- **`options`** _(Optional)_  
+  An object providing additional options for the conversion.  
+
+   Supported Options:
+
+    - **`useOrForIn`** _(Boolean)_: Use `OR` instead of `IN` for array comparisons.  
+      default: `false`
+    - **`conjunction`** _(String)_: Logical conjunction for combining conditions (`'AND'` or `'OR'`).  
+      default: `'AND'`
+    - **`useDoubleQuotes`** _(Boolean)_: Use double quotes for string values.  
+      default: `false`
+    - **`noSpaceBetweenOperator`** _(Boolean)_: No space between operators and values.  
+      default: `false`
+    - **`noQuotes`** _(Boolean)_: Do not use quotes around string values.  
+      default: `false`
+    - **`noQuotesForDate`** _(Boolean)_: No quotes for date values.  
+      default: `false`
+    - **`groupComparisonInBrackets`** _(Boolean)_: Group comparisons in brackets.  
+      default: `false`
+    - **`escapeSingleQuotes`** _(Boolean)_: Escape single quotes within string values.  
+      default: `false`
+
+  ***Supported Operators***:
+
+  - **`eq`**: Equals (`=`)  
+  - **`ne`**: Not Equals (`<>`)  
+  - **`gt`**: Greater Than (`>`)  
+  - **`gte`**: Greater Than or Equal (`>=`)  
+  - **`lt`**: Less Than (`<`)  
+  - **`lte`**: Less Than or Equal (`<=`)  
+  - **`in`**: In List (`IN`)  
+  - **`nin`**: Not In List (`NOT IN`)  
+  - **`like`**: Like (`LIKE`)  
 
 **Example:**
 
@@ -224,14 +283,12 @@ const data1 = {
 const expression1 = trutoJsonata("$convertQueryToSql(data)");
 expression1.evaluate({ data: data1 }).then(result => {
   console.log(result);
-  // Output: name = 'John' AND age >= 30 AND city IN ('New York','Los Angeles')
+  // Output: name = 'John' AND age >= 30 
 });
 
-// Example 2: Using 'or' operator
+// Example 2: Using 'like' operator
 const data2 = {
-  or: {
-    name: { eq: 'John' },
-  },
+    name: { like: 'John' },
 };
 
 const expression2 = trutoJsonata("$convertQueryToSql(data)");
@@ -318,7 +375,7 @@ const data8 = {
   status: { ne: 'inactive' },
 };
 
-const expression8 = trutoJsonata("$convertQueryToSql(data, null, null, null, customOperatorMapping)");
+const expression8 = trutoJsonata("$convertQueryToSql(data, [], {}, {}, customOperatorMapping)");
 expression8.evaluate({ data: data8, customOperatorMapping }).then(result => {
   console.log(result);
   // Output: status <> 'inactive'
@@ -326,7 +383,7 @@ expression8.evaluate({ data: data8, customOperatorMapping }).then(result => {
 
 // Example 9: Using data types
 const dataTypes = {
-  created_at: 'date',
+  created_at: 'string',
 };
 
 const data9 = {
@@ -419,6 +476,190 @@ expression14.evaluate({ data: data14, options: options14 }).then(result => {
   // Output: name = 'O''Reilly'
 });
 
+// Example 15: Using 'noSpaceBetweenOperator' option
+const options15 = {
+    noSpaceBetweenOperator: true,
+  };
+  
+  const data15 = {
+    price: { gt: '100' },
+  };
+  
+  const expression15 = trutoJsonata("$convertQueryToSql(data, [], {}, {}, {}, options)");
+  expression15.evaluate({ data: data15, options: options15 }).then(result => {
+    console.log(result);
+    // Output: price>100
+  });
+  
+  // Example 16: Using 'groupComparisonInBrackets' with 'AND' conjunction
+  const options16 = {
+    groupComparisonInBrackets: true,
+    conjunction: 'AND'
+  };
+  
+  const data16 = {
+    category: { eq: 'Books' },
+    availability: { eq: 'In Stock' },
+  };
+  
+  const expression16 = trutoJsonata("$convertQueryToSql(data, [], {}, {}, {}, options)");
+  expression16.evaluate({ data: data16, options: options16 }).then(result => {
+    console.log(result);
+    // Output: (category = 'Books' AND availability = 'In Stock')
+  });
+  
+  // Example 17: Using 'noQuotesForDate' with a date value
+  const options17 = {
+    noQuotesForDate: true,
+  };
+  
+  const data17 = {
+    created_at: { eq: '2021-12-31' },
+  };
+  
+  const dataTypes17 = {
+    created_at: 'date|yyyy-MM-dd'
+  };
+  
+  const expression17 = trutoJsonata("$convertQueryToSql(data, [], {}, dataTypes, {}, options)");
+  expression17.evaluate({ data: data17, dataTypes: dataTypes17, options: options17 }).then(result => {
+    console.log(result);
+    // Output: created_at = 2021-12-31
+  });
+  
+  // Example 18: Using 'useDoubleQuotes' and 'groupComparisonInBrackets' options
+  const options18 = {
+    useDoubleQuotes: true,
+    groupComparisonInBrackets: true,
+  };
+  
+  const data18 = {
+    product: { eq: 'Laptop' },
+    brand: { eq: 'Dell' },
+  };
+  
+  const expression18 = trutoJsonata("$convertQueryToSql(data, [], {}, {}, {}, options)");
+  expression18.evaluate({ data: data18, options: options18 }).then(result => {
+    console.log(result);
+    // Output: (product = "Laptop" AND brand = "Dell")
+  });
+  
+  // Example 19: Using a custom conjunction ('NOR')
+  const options19 = {
+    conjunction: 'NOR',
+  };
+  
+  const data19 = {
+    available: { eq: 'No' },
+    sold: { eq: 'Yes' },
+  };
+  
+  const expression19 = trutoJsonata("$convertQueryToSql(data, [], {}, {}, {}, options)");
+  expression19.evaluate({ data: data19, options: options19 }).then(result => {
+    console.log(result);
+    // Output: available = 'No' NOR sold = 'Yes'
+  });
+  
+  // Example 20: Using 'dotnetdate' data type with 'groupComparisonInBrackets'
+  const data20 = {
+    modified_at: { eq: '2023-01-01T00:00:00Z' },
+  };
+  
+  const dataTypes20 = {
+    modified_at: 'dotnetdate'
+  };
+  
+  const options20 = {
+    groupComparisonInBrackets: true,
+  };
+  
+  const expression20 = trutoJsonata("$convertQueryToSql(data, [], {}, dataTypes, {}, options)");
+  expression20.evaluate({ data: data20, dataTypes: dataTypes20, options: options20 }).then(result => {
+    console.log(result);
+    // Output: (modified_at = DateTime(2023,01,01))
+  });
+  
+  // Example 21: Using 'noQuotes' option for numeric comparison
+  const options21 = {
+    noQuotes: true,
+  };
+  
+  const data21 = {
+    rating: { gt: '4.5' },
+  };
+  
+  const expression21 = trutoJsonata("$convertQueryToSql(data, [], {}, {}, {}, options)");
+  expression21.evaluate({ data: data21, options: options21 }).then(result => {
+    console.log(result);
+    // Output: rating > 4.5
+  });
+  
+  // Example 22: Combining 'useOrForIn' with custom conjunction
+  const options22 = {
+    useOrForIn: true,
+    conjunction: 'OR',
+  };
+  
+  const data22 = {
+    productId: { in: [101, 102, 103] },
+  };
+  
+  const expression22 = trutoJsonata("$convertQueryToSql(data, [], {}, {}, {}, options)");
+  expression22.evaluate({ data: data22, options: options22 }).then(result => {
+    console.log(result);
+    // Output: (productId = 101 OR productId = 102 OR productId = 103)
+  });
+  
+  // Example 23: Using 'escapeSingleQuotes' with a string that contains a single quote
+  const options23 = {
+    escapeSingleQuotes: true,
+  };
+  
+  const data23 = {
+    publisher: { eq: "McGraw-Hill's" },
+  };
+  
+  const expression23 = trutoJsonata("$convertQueryToSql(data, [], {}, {}, {}, options)");
+  expression23.evaluate({ data: data23, options: options23 }).then(result => {
+    console.log(result);
+    // Output: publisher = 'McGraw-Hill\'s'
+  });
+  
+  // Example 24: 'noSpaceBetweenOperator' with 'gt' operator
+  const options24 = {
+    noSpaceBetweenOperator: true,
+  };
+  
+  const data24 = {
+    inventory: { gt: '50' },
+  };
+  
+  const expression25 = trutoJsonata("$convertQueryToSql(data, [], {}, {}, {}, options)");
+  expression25.evaluate({ data: data24, options: options24 }).then(result => {
+    console.log(result);
+    // Output: inventory>50
+  });
+  
+  // Example 25: Using 'noQuotesForDate' and escaping single quotes in the same data
+  const options25 = {
+    noQuotesForDate: true,
+    escapeSingleQuotes: true,
+  };
+  
+  const data25 = {
+    releaseDate: { eq: '2023-03-15' },
+    author: { eq: "J.K. O'Rourke" },
+  };
+  
+  const dataTypes25 = {
+    releaseDate: 'date|yyyy-MM-dd'
+  };
+  
+  const expression25 = trutoJsonata("$convertQueryToSql(data, [], {}, dataTypes, {}, options)");
+  expression25.evaluate({ data: data25, dataTypes: dataTypes25, options: options25 }).then(result => {
+    console.log(result);
+    // Output: releaseDate = 2023-03-15 AND author = 'J.K. O\'Rourke'
+  });
 ```
 
 </details>
