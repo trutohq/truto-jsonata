@@ -31,4 +31,9 @@ describe('decodebase64', () => {
     expect(result).toBe(expectedOutput)
   })
 
+  it('should throw an error for an invalid base64 string', () => {
+    const invalidBase64String = 'Invalid base64'
+    expect(() => base64decode(invalidBase64String)).toThrow()
+  })
+  
 })
