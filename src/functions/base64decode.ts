@@ -1,7 +1,18 @@
-import { decodeBase64 } from 'hono/utils/encode'
+function base64decode(base64: string, urlSafe = false): string {
 
-function base64decode(arg: string) {
-  return new TextDecoder('utf-8').decode(decodeBase64(arg))
+  if (urlSafe) {
+    base64 = base64
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');  
+  }
+  const binary = atob(base64);
+  const len = binary.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new TextDecoder().decode(bytes);
 }
 
-export default base64decode
+export default base64decode;
+
