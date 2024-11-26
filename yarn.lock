@@ -2938,7 +2938,7 @@ vitest-fetch-mock@0.3.0:
   dependencies:
     cross-fetch "^4.0.0"
 
-vitest@^2.1.4:
+vitest@2.1.4:
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/vitest/-/vitest-2.1.4.tgz#ba8f4589fb639cf5a9e6af54781667312b3e8230"
   integrity sha512-eDjxbVAJw1UJJCHr5xr/xM86Zx+YxIEXGAR+bmnEID7z9qWfoxpHw0zdobz+TQAFOLT+nEXz3+gx6nUJ7RgmlQ==
