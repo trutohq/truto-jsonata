@@ -1,5 +1,4 @@
 import arrayBufferToBase64 from './arrayBufferToBase64'
-import { webcrypto as crypto } from 'crypto'
 
 const digest = async (
   text: string,

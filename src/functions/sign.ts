@@ -1,6 +1,4 @@
 import arrayBufferToBase64 from './arrayBufferToBase64'
-import { webcrypto as crypto } from 'crypto'
-
 const sign = async (
   text: string,
   algorithm = 'SHA-256',
