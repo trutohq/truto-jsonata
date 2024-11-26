@@ -37,10 +37,10 @@ const convertNotionToMd = function (block: any, level = 1) {
   const data = block[block.type]
   const plainText = data.rich_text
     ? // @ts-ignore
-      data.rich_text.map(formatPlainText)
+      data?.rich_text.map(formatPlainText)
     : []
   // @ts-ignore
-  const caption = data.caption ? data.caption.map(x => x?.plain_text) : []
+  const caption = data?.caption ? data.caption.map(x => x?.plain_text) : []
   let childData = ''
   switch (block.type) {
     case 'bookmark':
