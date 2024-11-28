@@ -16,5 +16,5 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org/
       - run: yarn install
-      - run: yarn check
+      - run: yarn run check
       - run: yarn test
