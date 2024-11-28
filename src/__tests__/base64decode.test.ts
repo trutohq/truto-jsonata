@@ -23,7 +23,6 @@ describe('decodebase64', () => {
     expect(result).toBe(expectedOutput)
   })
 
-
   it('should decode a URL-safe base64 string', () => {
     const base64String = 'aHR0cHM6Ly9leGFtcGxlLmNvbS8_cXVlcnk9YmFzZTY0'
     const expectedOutput = 'https://example.com/?query=base64'
@@ -35,5 +34,4 @@ describe('decodebase64', () => {
     const invalidBase64String = 'Invalid base64'
     expect(() => base64decode(invalidBase64String)).toThrow()
   })
-  
 })
