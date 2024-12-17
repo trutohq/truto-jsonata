@@ -43,6 +43,7 @@ import {
   pick,
   values,
 } from 'lodash-es'
+import convertMarkdownToHtml from './functions/convertMarkdownToHtml'
 
 export default function registerJsonataExtensions(expression: Expression) {
   expression.registerFunction('dtFromIso', dtFromIso)
@@ -92,6 +93,7 @@ export default function registerJsonataExtensions(expression: Expression) {
   expression.registerFunction('sortNodes', sortNodes)
   expression.registerFunction('blob', blob)
   expression.registerFunction('convertHtmlToMarkdown', convertHtmlToMarkdown)
+  expression.registerFunction('convertMarkdownToHtml', convertMarkdownToHtml)
   expression.registerFunction('digest', digest)
   expression.registerFunction('sign', sign)
   expression.registerFunction('xmlToJs', xmlToJs)
