@@ -1459,6 +1459,43 @@ This is a **bold** statement.
 
 </details>
 
+<details>
+<summary>convertMarkdownToHtml(markdownString)</summary>
+
+Converts Markdown content to HTML format.
+
+**Example:**
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
+// Define an Markdown string to convert
+const markdownContent = `
+  # Welcome to Markdown
+  This is a **bold** statement.
+  - Item 1
+  - Item 2
+`;
+
+// Use convertMarkdownToHtml to transform Markdown into HTML
+const expression = trutoJsonata("$convertMarkdownToHtml(markdownContent)");
+expression.evaluate({ markdownContent }).then(result => { console.log(result); });
+
+/*
+Output:
+
+<h1>Welcome to Markdown</h1>
+<p>This is a <strong>bold</strong> statement.</p>
+<ul>
+  <li>Item 1</li>
+  <li>Item 2</li>
+</ul>
+
+*/
+```
+
+</details>
+
 ---  
 
 ### Array and Object Utilities (Lodash Enhancements)
