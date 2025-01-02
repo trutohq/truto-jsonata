@@ -23,4 +23,10 @@ describe('getArrayBuffer', () => {
     }
     expect(arrayBuffer).toBeInstanceOf(ArrayBuffer)
   })
+
+  it('should return undefined when file is of not blob type', async () => {
+    // @ts-ignore
+    const arrayBuffer = await getArrayBuffer('Hello World!')
+    expect(arrayBuffer).toBeUndefined()
+  })
 })
