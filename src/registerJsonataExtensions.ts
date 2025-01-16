@@ -44,6 +44,7 @@ import {
   values,
 } from 'lodash-es'
 import convertMarkdownToHtml from './functions/convertMarkdownToHtml'
+import generateEmbeddingsCohere from './functions/generateEmbeddingsCohere'
 
 export default function registerJsonataExtensions(expression: Expression) {
   expression.registerFunction('dtFromIso', dtFromIso)
@@ -98,6 +99,10 @@ export default function registerJsonataExtensions(expression: Expression) {
   expression.registerFunction('sign', sign)
   expression.registerFunction('xmlToJs', xmlToJs)
   expression.registerFunction('jsToXml', jsToXml)
+  expression.registerFunction(
+    'generateEmbeddingsCohere',
+    generateEmbeddingsCohere
+  )
   expression.registerFunction('groupBy', function (array, key) {
     return groupBy(castArray(array), key)
   })
