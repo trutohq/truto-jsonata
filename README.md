@@ -1819,6 +1819,43 @@ URL {
 
 ---
 
+### AI Stuff
+
+<details>
+<summary>generateEmbeddingsCohere(body, api_key)</summary>
+
+Generate embeddings through Cohere /embed API.
+
+**Parameters:**
+
+- **body**: The object similar to what [Cohere's /embed API](https://docs.cohere.com/reference/embed) expects.
+- **api_key**: Cohere's API Key
+
+**Example Usage:**
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
+const body = {
+  "model": "embed-multilingual-v3.0",
+  "texts": [
+    "hello",
+    "goodbye"
+  ],
+  "input_type": "classification",
+  "embedding_types": [
+    "float"
+  ]
+};
+const api_key = "c7fdd028-d967-456a-9765-be47a7959f7e";
+const expression = trutoJsonata("$generateEmbeddingsCohere(body, api_key)");
+expression.evaluate({ body, api_key }).then(result => { console.log(result); });
+// Output: {"id": "c7fdd028-d967-456a-9765-be47a7959f7e", .....}
+```
+
+</details>
+
+
 ### Miscellaneous
 
 <details>
