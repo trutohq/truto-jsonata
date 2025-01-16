@@ -1847,10 +1847,10 @@ const body = {
     "float"
   ]
 };
-const api_key = "";
-const expression = trutoJsonata("$mostSimilar(body, api_key)");
+const api_key = "c7fdd028-d967-456a-9765-be47a7959f7e";
+const expression = trutoJsonata("$generateEmbeddingsCohere(body, api_key)");
 expression.evaluate({ body, api_key }).then(result => { console.log(result); });
-// Output: {"id": "f31a5959-1710-4c4b-af10-6ad1117ddc2" .....}
+// Output: {"id": "c7fdd028-d967-456a-9765-be47a7959f7e", .....}
 ```
 
 </details>
