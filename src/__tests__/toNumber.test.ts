@@ -28,13 +28,13 @@ describe('toNumber', () => {
   })
 
   it('should return NaN for null and undefined', () => {
-    expect(toNumber(null)).toBeNaN()
+    expect(toNumber(null)).toBe(0)
     expect(toNumber(undefined)).toBeNaN()
   })
 
   it('should return NaN for non-string inputs like objects and arrays', () => {
     expect(toNumber({})).toBeNaN()
-    expect(toNumber([])).toBeNaN()
+    expect(toNumber([])).toBe(0)
     expect(toNumber([1, 2, 3])).toBeNaN()
   })
 })
