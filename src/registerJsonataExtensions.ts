@@ -29,6 +29,7 @@ import getArrayBuffer from './functions/getArrayBuffer'
 import blob from './functions/blob'
 import zipSqlResponse from './functions/zipSqlResponse'
 import base64decode from './functions/base64decode'
+import toNumber from './functions/toNumber'
 import {
   castArray,
   compact,
@@ -86,6 +87,7 @@ export default function registerJsonataExtensions(expression: Expression) {
       return difference(arr1, arr2)
     }
   )
+  expression.registerFunction('toNumber', toNumber)
   expression.registerFunction('jsonParse', jsonParse)
   expression.registerFunction('getMimeType', getMimeType)
   expression.registerFunction('uuid', uuid)
