@@ -47,6 +47,8 @@
     "vitest": "2.1.4"
   },
   "dependencies": {
+    "@langchain/core": "0.3.37",
+    "@langchain/textsplitters": "0.1.0",
     "@mixmark-io/domino": "2.2.0",
     "dependency-graph": "1.0.0",
     "dice-coefficient": "2.1.1",

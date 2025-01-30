@@ -47,6 +47,7 @@ import {
 import convertMarkdownToHtml from './functions/convertMarkdownToHtml'
 import generateEmbeddingsCohere from './functions/generateEmbeddingsCohere'
 import parseDocument from './functions/parseDocument'
+import { recursiveCharacterTextSplitter } from './functions/recursiveCharacterTextSplitter'
 
 export default function registerJsonataExtensions(expression: Expression) {
   expression.registerFunction('dtFromIso', dtFromIso)
@@ -140,6 +141,10 @@ export default function registerJsonataExtensions(expression: Expression) {
     return join([wrapper, value, endWrapper || wrapper], '')
   })
   expression.registerFunction('parseDocument', parseDocument)
+  expression.registerFunction(
+    'recursiveCharacterTextSplitter',
+    recursiveCharacterTextSplitter
+  )
 
   return expression
 }
