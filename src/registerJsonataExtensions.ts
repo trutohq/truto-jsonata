@@ -46,6 +46,7 @@ import {
 } from 'lodash-es'
 import convertMarkdownToHtml from './functions/convertMarkdownToHtml'
 import generateEmbeddingsCohere from './functions/generateEmbeddingsCohere'
+import parseDocument from './functions/parseDocument'
 
 export default function registerJsonataExtensions(expression: Expression) {
   expression.registerFunction('dtFromIso', dtFromIso)
@@ -138,6 +139,7 @@ export default function registerJsonataExtensions(expression: Expression) {
   expression.registerFunction('wrap', function (value, wrapper, endWrapper) {
     return join([wrapper, value, endWrapper || wrapper], '')
   })
+  expression.registerFunction('parseDocument', parseDocument)
 
   return expression
 }
