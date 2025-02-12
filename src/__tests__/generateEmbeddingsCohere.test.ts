@@ -501,6 +501,9 @@ describe('generateEmbeddingsCohere', async () => {
       method: 'POST',
       body: '{"model":"embed-multilingual-v3.0","texts":["A","B"],"input_type":"classification","embedding_types":["float"]}',
     })
-    expect(response).toHaveProperty('id')
+    expect(response).toHaveProperty(
+      '0.id',
+      'c7fdd028-d967-456a-9765-be47a7959f7e'
+    )
   })
 })
