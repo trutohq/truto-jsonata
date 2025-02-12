@@ -32,6 +32,7 @@ import base64decode from './functions/base64decode'
 import toNumber from './functions/toNumber'
 import {
   castArray,
+  chunk,
   compact,
   difference,
   filter,
@@ -48,6 +49,7 @@ import convertMarkdownToHtml from './functions/convertMarkdownToHtml'
 import generateEmbeddingsCohere from './functions/generateEmbeddingsCohere'
 import parseDocument from './functions/parseDocument'
 import { recursiveCharacterTextSplitter } from './functions/recursiveCharacterTextSplitter'
+import getDataUri from './functions/getDataUri'
 
 export default function registerJsonataExtensions(expression: Expression) {
   expression.registerFunction('dtFromIso', dtFromIso)
@@ -137,6 +139,9 @@ export default function registerJsonataExtensions(expression: Expression) {
   expression.registerFunction('values', function (obj) {
     return values(obj)
   })
+  expression.registerFunction('chunk', function (arr, size) {
+    return chunk(castArray(arr), size)
+  })
   expression.registerFunction('wrap', function (value, wrapper, endWrapper) {
     return join([wrapper, value, endWrapper || wrapper], '')
   })
@@ -145,6 +150,7 @@ export default function registerJsonataExtensions(expression: Expression) {
     'recursiveCharacterTextSplitter',
     recursiveCharacterTextSplitter
   )
+  expression.registerFunction('getDataUri', getDataUri)
 
   return expression
 }
