@@ -882,6 +882,23 @@ expression.evaluate({ file}).then(result => { console.log(result); });
 </details>
 
 <details>
+<summary>getDataUri(file)</summary>
+
+Converts a `Blob` or `Buffer` or `Readable Stream` to a data URI.
+
+**Example:**
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+const file = new Blob(['Hello, World!'], { type: 'text/plain' });
+const expression = trutoJsonata("getDataUri(file)");
+expression.evaluate({ file}).then(result => { console.log(result); });
+// Output: 'data:text/plain;base64,SGVsbG8sIFdvcmxkIQ=='
+```
+
+</details>
+
+<details>
 <summary>blob(content, options)</summary>
 
 Creates a `Blob` object from content with the specified MIME type.
@@ -1238,6 +1255,25 @@ expression3.evaluate({ jsonData: jsonData3, options: options3 }).then(result => 
   */
 });
 ```
+
+</details>
+
+<details>
+<summary>parseDocument(file)</summary>
+
+Parses a document file (e.g., PDF, DOCX) and extracts text content.
+
+**Example:**
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+const file = new Blob(['Hello, World!'], { type: 'application/pdf' });
+const buffer = await file.arrayBuffer();
+const expression = trutoJsonata("$parseDocument(buffer)");
+expression.evaluate({ file}).then(result => { console.log(result); });
+// Output: 'Hello, World!'
+
+````
 
 </details>
 
@@ -1855,6 +1891,35 @@ expression.evaluate({ body, api_key }).then(result => { console.log(result); });
 
 </details>
 
+<details>
+<summary>recursiveCharacterTextSplitter(text, options)</summary>
+
+Splits a text into an array of characters, words, or sentences, recursively.
+
+**Parameters:**
+
+- **text**: The input text to split.
+- **options**: An object containing the following properties:
+  - **chunkSize**: The maximum number of characters, words, or sentences per chunk (default is `200`).
+  - **chunkOverlap**: The number of characters, words, or sentences to overlap between chunks (default is `60`).
+
+**Example Usage:**
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
+const text = "Hello, World! This is a sample text.";
+const options = {
+    chunkSize: 10,
+    chunkOverlap: 3
+};
+const expression = trutoJsonata("$recursiveCharacterTextSplitter(text, options)");
+expression.evaluate(text).then(result => { console.log(result); });
+// Output: ["Hello, Wo", "lo, World", "rld! This", "is a samp", "ample text", "text."]
+```
+
+</details>
+
 
 ### Miscellaneous
 
@@ -2012,6 +2077,26 @@ import trutoJsonata from '@truto/truto-jsonata';
 const expression = trutoJsonata("$base64decode('SGVsbG8sIFdvcmxkIQ==')");
 expression.evaluate({}).then(result => { console.log(result); });
 // Output: 'Hello, World!'
+```
+
+</details>
+
+
+
+<details>
+<summary>chunk(arr,size)</summary>
+
+Chunks an array into smaller arrays of a specified size.
+
+**Example:**
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
+
+const expression = trutoJsonata("$chunk([1, 2, 3, 4, 5], 2)");
+expression.evaluate({}).then(result => { console.log(result); });
+// Output: [[1,2],[3,4],[5]]
 ```
 
 </details>
