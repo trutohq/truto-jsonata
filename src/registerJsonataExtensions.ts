@@ -50,6 +50,7 @@ import generateEmbeddingsCohere from './functions/generateEmbeddingsCohere'
 import parseDocument from './functions/parseDocument'
 import { recursiveCharacterTextSplitter } from './functions/recursiveCharacterTextSplitter'
 import getDataUri from './functions/getDataUri'
+import teeStream from './functions/teeStream'
 
 export default function registerJsonataExtensions(expression: Expression) {
   expression.registerFunction('dtFromIso', dtFromIso)
@@ -151,6 +152,7 @@ export default function registerJsonataExtensions(expression: Expression) {
     recursiveCharacterTextSplitter
   )
   expression.registerFunction('getDataUri', getDataUri)
+  expression.registerFunction('teeStream', teeStream)
 
   return expression
 }
