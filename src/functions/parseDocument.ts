@@ -1,4 +1,3 @@
-import { ReadableStream } from 'node:stream/web'
 import { parseOfficeAsync } from 'officeparser'
 import { fileTypeFromBuffer } from 'file-type'
 import { resolvePDFJS } from 'pdfjs-serverless'
@@ -32,8 +31,8 @@ async function parsePdf(buffer: Buffer) {
   return join(output, '\n')
 }
 
-async function parseDocument(file: string | Buffer | ReadableStream) {
-  if (file) {
+async function parseDocument(file: string | Buffer | ReadableStream  ) {
+  if (file instanceof ReadableStream) {
     const chunks = []
     for await (const chunk of file) {
       chunks.push(Buffer.from(chunk))

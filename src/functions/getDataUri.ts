@@ -1,4 +1,3 @@
-import { ReadableStream } from 'node:stream/web'
 import { fileTypeFromBuffer } from 'file-type'
 
 async function getDataUri(file: Blob | Buffer | ReadableStream) {
