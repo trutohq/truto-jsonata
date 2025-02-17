@@ -1,6 +1,6 @@
 async function getDataUri(
   file: Blob | Buffer | ReadableStream,
-  mimeType?: string
+  mimeType: string
 ) {
   if (file instanceof ReadableStream) {
     const chunks = []
