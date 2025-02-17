@@ -53,8 +53,6 @@
     "@mixmark-io/domino": "2.2.0",
     "dependency-graph": "1.0.0",
     "dice-coefficient": "2.1.1",
-    "file-type": "20.0.1",
-    "istextorbinary": "9.5.0",
     "json2md": "2.0.1",
     "jsonata": "2.0.5",
     "lodash-es": "4.17.21",

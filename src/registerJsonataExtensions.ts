@@ -51,6 +51,7 @@ import parseDocument from './functions/parseDocument'
 import { recursiveCharacterTextSplitter } from './functions/recursiveCharacterTextSplitter'
 import getDataUri from './functions/getDataUri'
 import teeStream from './functions/teeStream'
+import bufferToString from './functions/bufferToString'
 
 export default function registerJsonataExtensions(expression: Expression) {
   expression.registerFunction('dtFromIso', dtFromIso)
@@ -153,6 +154,7 @@ export default function registerJsonataExtensions(expression: Expression) {
   )
   expression.registerFunction('getDataUri', getDataUri)
   expression.registerFunction('teeStream', teeStream)
+  expression.registerFunction('bufferToString', bufferToString)
 
   return expression
 }

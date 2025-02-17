@@ -1,6 +1,7 @@
-import { fileTypeFromBuffer } from 'file-type'
-
-async function getDataUri(file: Blob | Buffer | ReadableStream) {
+async function getDataUri(
+  file: Blob | Buffer | ReadableStream,
+  mimeType?: string
+) {
   if (file instanceof ReadableStream) {
     const chunks = []
     for await (const chunk of file) {
@@ -8,7 +9,6 @@ async function getDataUri(file: Blob | Buffer | ReadableStream) {
     }
     const buffer = Buffer.concat(chunks)
     const base64Image = buffer.toString('base64')
-    const mimeType = (await fileTypeFromBuffer(buffer))?.mime
 
     // Construct the data URI for a PNG image
     return `data:${mimeType};base64,${base64Image}`
@@ -16,7 +16,6 @@ async function getDataUri(file: Blob | Buffer | ReadableStream) {
   const arrayBuffer = file instanceof Blob ? await file.arrayBuffer() : file
   const buffer = Buffer.from(arrayBuffer)
   const base64Image = buffer.toString('base64')
-  const mimeType = (await fileTypeFromBuffer(buffer))?.mime
 
   return `data:${mimeType};base64,${base64Image}`
 }
