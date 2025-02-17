@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Truto extension of jsonata",
   "repository": "https://github.com/trutohq/truto-jsonata.git",
   "source": "src/index.ts",
@@ -29,6 +29,7 @@
     "yarn": "1.22.19"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "4.20241018.0",
     "@parcel/packager-ts": "2.8.3",
     "@parcel/transformer-typescript-types": "2.8.3",
     "@types/json2md": "1.5.4",
@@ -44,8 +45,7 @@
     "parcel": "2.8.3",
     "prettier": "2.8.4",
     "typescript": "4.9.5",
-    "vitest": "2.1.4",
-    "@cloudflare/workers-types": "4.20241018.0"
+    "vitest": "2.1.4"
   },
   "dependencies": {
     "@langchain/core": "0.3.37",
@@ -54,6 +54,7 @@
     "dependency-graph": "1.0.0",
     "dice-coefficient": "2.1.1",
     "file-type": "20.0.1",
+    "istextorbinary": "9.5.0",
     "json2md": "2.0.1",
     "jsonata": "2.0.5",
     "lodash-es": "4.17.21",

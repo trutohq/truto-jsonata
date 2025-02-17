@@ -2,6 +2,8 @@ import { parseOfficeAsync } from 'officeparser'
 import { fileTypeFromBuffer } from 'file-type'
 import { resolvePDFJS } from 'pdfjs-serverless'
 import { get, join } from "lodash-es";
+import { isText } from 'istextorbinary'
+
 
 async function parsePdf(buffer: Buffer) {
   const data = buffer.buffer.slice(
@@ -39,6 +41,9 @@ async function parseDocument(file: string | Buffer | ReadableStream  ) {
     }
     const buffer = Buffer.concat(chunks)
     const fileExt = (await fileTypeFromBuffer(buffer))?.ext
+    if(isText(null, buffer)) {
+      return buffer.toString('utf-8')
+    }
     if (fileExt === 'pdf') {
       return await parsePdf(buffer)
     }
