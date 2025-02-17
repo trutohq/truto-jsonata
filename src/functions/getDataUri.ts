@@ -2,6 +2,9 @@ async function getDataUri(
   file: Blob | Buffer | ReadableStream,
   mimeType: string
 ) {
+  if (!mimeType) {
+    throw new Error('Mime type is required')
+  }
   if (file instanceof ReadableStream) {
     const chunks = []
     for await (const chunk of file) {
