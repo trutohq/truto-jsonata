@@ -1,7 +1,10 @@
 import { Lexer, Token } from 'marked'
 import {
+  compact,
   concat,
   each,
+  flatten,
+  flattenDeep,
   get,
   groupBy,
   isEmpty,
@@ -10,6 +13,7 @@ import {
   set,
 } from 'lodash-es'
 import decodeHtmlEntities from './decodeHtmlEntities'
+import insertBetween from './insertBetween'
 
 const parseMarkedTokenToNotionRequest = (
   tokens: Token[],
@@ -88,17 +92,32 @@ const parseMarkedTokenToNotionRequest = (
         return acc
       }
       if (token.type === 'code') {
+        const textSplitByNewLine = token.text.split('\n')
+        const chunksOfChunks = compact(
+          map(textSplitByNewLine, chunk => chunkText(chunk))
+        )
+        const chunksWithNewLines = flattenDeep(
+          insertBetween(
+            map(chunksOfChunks, chunk => {
+              return map(chunk, _chunk => ({
+                type: 'text',
+                text: {
+                  content: _chunk,
+                },
+              }))
+            }),
+            {
+              type: 'text',
+              text: {
+                content: '\n\n',
+              },
+            }
+          )
+        )
         acc.push({
           type: 'code',
           code: {
-            rich_text: [
-              {
-                type: 'text',
-                text: {
-                  content: token.text,
-                },
-              },
-            ],
+            rich_text: chunksWithNewLines,
             language: token.lang || 'plain text',
           },
         })
@@ -201,23 +220,31 @@ const parseMarkedTokenToNotionRequest = (
         return acc
       }
       const textToInsert = decodeHtmlEntities(text)
-      acc.push({
-        type: 'text',
-        text: {
-          content: textToInsert,
-        },
-        ...(token.type === 'codespan'
-          ? {
-              annotations: {
-                code: true,
-              },
-            }
-          : {}),
+      // chunk the text into 2000 character chunks, should handle emojis and multi-byte characters
+      const chunks = chunkText(textToInsert)
+      each(chunks, chunk => {
+        acc.push({
+          type: 'text',
+          text: {
+            content: chunk,
+          },
+          ...(token.type === 'codespan'
+            ? {
+                annotations: {
+                  code: true,
+                },
+              }
+            : {}),
+        })
       })
       return acc
     },
     acc
   )
+}
+
+const chunkText = (text: string, numChars = 2000) => {
+  return text.match(new RegExp(`.{1,${numChars}}`, 'g'))
 }
 
 const convertMarkdownToNotion = (text: string) => {
