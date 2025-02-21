@@ -221,21 +221,37 @@ const parseMarkedTokenToNotionRequest = (
       }
       const textToInsert = decodeHtmlEntities(text)
       // chunk the text into 2000 character chunks, should handle emojis and multi-byte characters
-      const chunks = chunkText(textToInsert)
-      each(chunks, chunk => {
-        acc.push({
-          type: 'text',
-          text: {
-            content: chunk,
-          },
-          ...(token.type === 'codespan'
-            ? {
-                annotations: {
-                  code: true,
-                },
-              }
-            : {}),
-        })
+      const textSplitByNewLine = textToInsert.split('\n')
+      const chunksOfChunks = compact(
+        map(textSplitByNewLine, chunk => chunkText(chunk))
+      )
+      const chunksWithNewLines = flattenDeep(
+        insertBetween(
+          map(chunksOfChunks, chunk => {
+            return map(chunk, _chunk => ({
+              type: 'text',
+              text: {
+                content: _chunk,
+              },
+              ...(token.type === 'codespan'
+                ? {
+                    annotations: {
+                      code: true,
+                    },
+                  }
+                : {}),
+            }))
+          }),
+          {
+            type: 'text',
+            text: {
+              content: '\n',
+            },
+          }
+        )
+      )
+      each(chunksWithNewLines, chunk => {
+        acc.push(chunk)
       })
       return acc
     },
