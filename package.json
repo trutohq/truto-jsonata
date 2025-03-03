@@ -65,7 +65,7 @@
     "pdfjs-serverless": "0.6.0",
     "turndown": "7.2.0",
     "turndown-plugin-gfm": "1.0.2",
-    "vitest-fetch-mock": "0.3.0",
+    "vitest-fetch-mock": "0.4.4",
     "xml-js": "1.6.11"
   },
   "scripts": {
