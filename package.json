@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.0.16",
+  "version": "1.0.17",
   "description": "Truto extension of jsonata",
   "repository": "https://github.com/trutohq/truto-jsonata.git",
   "source": "src/index.ts",
@@ -45,7 +45,7 @@
     "parcel": "2.8.3",
     "prettier": "2.8.4",
     "typescript": "4.9.5",
-    "vitest": "2.1.4"
+    "vitest": "3.0.9"
   },
   "dependencies": {
     "@langchain/core": "0.3.37",
@@ -66,7 +66,7 @@
     "turndown": "7.2.0",
     "turndown-plugin-gfm": "1.0.2",
     "vitest-fetch-mock": "0.3.0",
-    "xlsx": "0.18.5",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "xml-js": "1.6.11"
   },
   "scripts": {
