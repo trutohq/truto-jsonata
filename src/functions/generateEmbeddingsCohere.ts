@@ -1,6 +1,6 @@
 import { castArray, chunk, isEmpty } from 'lodash-es'
 import pMap from 'p-map'
-import pRetry from 'p-retry'
+import pRetry, { AbortError } from 'p-retry'
 
 async function generateEmbeddingsCohere(
   body: Record<string, unknown>,
@@ -24,11 +24,17 @@ async function generateEmbeddingsCohere(
               body: JSON.stringify({ ...body, texts: chunk }),
             })
             if (!response.ok) {
-              throw new Error(await response.text())
+              if (response.status === 429) {
+                throw new Error('Rate limit exceeded')
+              }
+              if (response.status >= 500) {
+                throw new Error('Server error')
+              }
+              throw new AbortError(await response.text())
             }
             return await response.json()
           },
-          { retries: 10, maxTimeout: 600000 }
+          { retries: 5, maxTimeout: 5000, minTimeout: 2500 }
         )
       },
       {
@@ -49,11 +55,17 @@ async function generateEmbeddingsCohere(
           body: JSON.stringify(body),
         })
         if (!response.ok) {
-          throw new Error(await response.text())
+          if (response.status === 429) {
+            throw new Error('Rate limit exceeded')
+          }
+          if (response.status >= 500) {
+            throw new Error('Server error')
+          }
+          throw new AbortError(await response.text())
         }
         return await response.json()
       },
-      { retries: 10, maxTimeout: 600000 }
+      { retries: 5, maxTimeout: 5000, minTimeout: 2500 }
     )
   }
 }
