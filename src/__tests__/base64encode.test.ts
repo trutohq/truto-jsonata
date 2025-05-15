@@ -33,8 +33,7 @@ describe('encodebase64', () => {
   it('should handle a URL-safe base64 encoding', () => {
     const inputString = 'https://example.com/?query=base64'
     const expectedOutput = 'aHR0cHM6Ly9leGFtcGxlLmNvbS8_cXVlcnk9YmFzZTY0'
-    const result = base64encode(inputString,true)
+    const result = base64encode(inputString, true)
     expect(result).toBe(expectedOutput)
   })
-
 })
