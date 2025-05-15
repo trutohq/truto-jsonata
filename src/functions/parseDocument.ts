@@ -2,7 +2,7 @@ import pRetry, { AbortError } from 'p-retry'
 import { Focus } from 'jsonata'
 
 async function parseDocument(
-  this: Focus,
+  _this: Focus,
   file: string | Buffer | ReadableStream,
   fileType: string
 ) {
