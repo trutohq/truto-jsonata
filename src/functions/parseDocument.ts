@@ -7,7 +7,7 @@ async function parseDocument(
   fileType: string
 ) {
   const documentParserApiUrl = _this.environment.lookup('documentParserApiUrl')
-  const documentParserApiKey = this.environment.lookup('documentParserApiKey')
+  const documentParserApiKey = _this.environment.lookup('documentParserApiKey')
   if (!documentParserApiKey) {
     throw new Error('API key not found in environment')
   }
