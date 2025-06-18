@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.0.20",
+  "version": "1.0.21",
   "description": "Truto extension of jsonata",
   "repository": "https://github.com/trutohq/truto-jsonata.git",
   "source": "src/index.ts",
@@ -55,7 +55,7 @@
     "dependency-graph": "1.0.0",
     "dice-coefficient": "2.1.1",
     "json2md": "2.0.1",
-    "jsonata": "2.0.5",
+    "jsonata": "2.0.6",
     "lodash-es": "4.17.21",
     "luxon": "3.5.0",
     "marked": "14.1.3",
