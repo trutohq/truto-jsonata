@@ -44,6 +44,9 @@ import {
   orderBy,
   pick,
   values,
+  flatten,
+  flattenDeep,
+  flattenDepth,
 } from 'lodash-es'
 import convertMarkdownToHtml from './functions/convertMarkdownToHtml'
 import generateEmbeddingsCohere from './functions/generateEmbeddingsCohere'
@@ -160,5 +163,14 @@ export default function registerJsonataExtensions(expression: Expression) {
   expression.registerFunction('parseQuery', parseQuery)
   expression.registerFunction('stringifyQuery', stringifyQuery)
 
+  expression.registerFunction('flatten', function (arr) {
+    return flatten(castArray(arr))
+  })
+  expression.registerFunction('flattenDeep', function (arr) {
+    return flattenDeep(castArray(arr))
+  })
+  expression.registerFunction('flattenDepth', function (arr, depth) {
+    return flattenDepth(castArray(arr), depth)
+  })
   return expression
 }
