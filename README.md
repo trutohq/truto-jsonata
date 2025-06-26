@@ -1811,6 +1811,58 @@ expression.evaluate({ data }).then(result => { console.log(result); });
 
 </details>
 
+<details>
+<summary>flatten(array)</summary>
+
+Flattens an array a single level deep.
+
+**Example:**
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
+const expression = trutoJsonata("$flatten([1, [2, [3]]])");
+expression.evaluate({}).then(result => { console.log(result); });
+// Output: [1, 2, [3]]
+```
+
+</details>
+
+<details>
+<summary>flattenDeep(array)</summary>
+
+Recursively flattens an array, flattening all nested arrays into a single array.
+
+**Example:**
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
+const expression = trutoJsonata("$flattenDeep([1, [2, [3, [4, [5]]]])");
+expression.evaluate({}).then(result => { console.log(result); });
+// Output: [1, 2, 3, 4, 5]
+```
+
+</details>
+
+<details>
+<summary>flattenDepth(array, depth)</summary>
+
+Flattens an array up to the specified depth.
+
+**Example:**
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
+const expression = trutoJsonata("$flattenDepth([1, [2, [3, [4, [5]]]]], 2)");
+expression.evaluate({}).then(result => { console.log(result); });
+// Output: [1, 2, 3, [4, [5]]]
+```
+
+</details>
+
+
 ---
   
 ### Parsing and URL Functions
