@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.0.22",
+  "version": "1.0.23",
   "description": "Truto extension of jsonata",
   "repository": "https://github.com/trutohq/truto-jsonata.git",
   "source": "src/index.ts",
@@ -23,7 +23,7 @@
   },
   "type": "module",
   "license": "MIT",
-  "author": "archith.s",
+  "author": "Truto <eng@truto.one>",
   "volta": {
     "node": "22.10.0",
     "yarn": "1.22.19"
@@ -49,6 +49,7 @@
     "vitest": "3.0.9"
   },
   "dependencies": {
+    "@joplin/turndown-plugin-gfm": "1.0.62",
     "@langchain/core": "0.3.37",
     "@langchain/textsplitters": "0.1.0",
     "@mixmark-io/domino": "2.2.0",
@@ -64,7 +65,6 @@
     "p-retry": "6.2.1",
     "qs": "6.14.0",
     "turndown": "7.2.0",
-    "turndown-plugin-gfm": "1.0.2",
     "vitest-fetch-mock": "0.3.0",
     "xml-js": "1.6.11"
   },
