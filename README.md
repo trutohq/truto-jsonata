@@ -2100,7 +2100,7 @@ expression.evaluate({}).then(result => { console.log(result); });
 </details>
 
 <details>
-<summary>base64encode(input)</summary>
+<summary>base64encode(input, urlSafe = false)</summary>
 
 Encodes the input data in Base64.
 
@@ -2117,7 +2117,7 @@ expression.evaluate({}).then(result => { console.log(result); });
 </details>
 
 <details>
-<summary>base64decode(base64String)</summary>
+<summary>base64decode(base64String, urlSafe = false)</summary>
 
 Decodes a Base64-encoded string.
 
