@@ -2133,6 +2133,55 @@ expression.evaluate({}).then(result => { console.log(result); });
 
 </details>
 
+<details>
+<summary>base64ToBlob(base64String, options = {})</summary>
+
+Converts a Base64-encoded string to a Blob object.
+
+**Parameters:**
+
+- **base64String**: The Base64 string to convert. Can include data URI prefixes (e.g., `data:image/png;base64,iVBORw0...`)
+- **options** _(Optional)_: An object containing:
+  - **mimeType**: The MIME type for the resulting Blob (default: `'application/octet-stream'`)
+  - **urlSafe**: Whether to handle URL-safe Base64 encoding (default: `false`)
+
+**Features:**
+
+- Handles data URI format automatically
+- Supports URL-safe Base64 encoding
+- Automatic padding correction
+- Comprehensive error handling for invalid Base64 strings
+- MIME type detection from data URI or custom specification
+
+**Example:**
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
+// Basic usage
+const expression1 = trutoJsonata("$base64ToBlob('SGVsbG8gd29ybGQ=', { mimeType: 'text/plain' })");
+expression1.evaluate({}).then(result => { 
+  console.log(result); 
+  // Output: Blob object with type 'text/plain' and size 11
+});
+
+// Data URI format
+const expression2 = trutoJsonata("$base64ToBlob('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==')");
+expression2.evaluate({}).then(result => { 
+  console.log(result); 
+  // Output: Blob object with type 'image/png' (auto-detected from data URI)
+});
+
+// URL-safe Base64
+const expression3 = trutoJsonata("$base64ToBlob('aHR0cHM6Ly9leGFtcGxlLmNvbS8_cXVlcnk9YmFzZTY0', { urlSafe: true })");
+expression3.evaluate({}).then(result => { 
+  console.log(result); 
+  // Output: Blob object containing the decoded data
+});
+```
+
+</details>
+
 
 
 <details>

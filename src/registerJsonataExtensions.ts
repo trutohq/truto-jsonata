@@ -1,35 +1,4 @@
 import { Expression } from 'jsonata'
-import convertQueryToSql from './functions/convertQueryToSql'
-import mapValues from './functions/mapValues'
-import convertMarkdownToGoogleDocs from './functions/convertMarkdownToGoogleDocs'
-import convertMarkdownToNotion from './functions/convertMarkdownToNotion'
-import convertMarkdownToSlack from './functions/convertMarkdownToSlack'
-import mostSimilar from './functions/mostSimilar'
-import sortNodes from './functions/sortNodes'
-import convertHtmlToMarkdown from './functions/convertHtmlToMarkdown'
-import digest from './functions/digest'
-import convertNotionToMarkdown from './functions/convertNotionToMarkdown'
-import sign from './functions/sign'
-import xmlToJs from './functions/xmlToJs'
-import jsToXml from './functions/jsToXml'
-import dtFromIso from './functions/dtFromIso'
-import dtFromFormat from './functions/dtFromFormat'
-import removeEmpty from './functions/removeEmpty'
-import removeEmptyItems from './functions/removeEmptyItems'
-import convertNotionToMd from './functions/convertNotionToMd'
-import parseUrl from './functions/parseUrl'
-import jsonParse from './functions/jsonParse'
-import getMimeType from './functions/getMimeType'
-import uuid from './functions/uuid'
-import base64encode from './functions/base64encode'
-import convertCurrencyToSubunit from './functions/convertCurrencyToSubunit'
-import convertCurrencyFromSubunit from './functions/convertCurrencyFromSubunit'
-import firstNonEmpty from './functions/firstNonEmpty'
-import getArrayBuffer from './functions/getArrayBuffer'
-import blob from './functions/blob'
-import zipSqlResponse from './functions/zipSqlResponse'
-import base64decode from './functions/base64decode'
-import toNumber from './functions/toNumber'
 import {
   castArray,
   chunk,
@@ -37,6 +6,9 @@ import {
   difference,
   filter,
   find,
+  flatten,
+  flattenDeep,
+  flattenDepth,
   groupBy,
   join,
   keyBy,
@@ -44,24 +16,54 @@ import {
   orderBy,
   pick,
   values,
-  flatten,
-  flattenDeep,
-  flattenDepth,
 } from 'lodash-es'
-import convertMarkdownToHtml from './functions/convertMarkdownToHtml'
-import generateEmbeddingsCohere from './functions/generateEmbeddingsCohere'
-import parseDocument from './functions/parseDocument'
-import { recursiveCharacterTextSplitter } from './functions/recursiveCharacterTextSplitter'
-import getDataUri from './functions/getDataUri'
-import teeStream from './functions/teeStream'
+import base64decode from './functions/base64decode'
+import base64encode from './functions/base64encode'
+import base64ToBlob from './functions/base64ToBlob'
+import blob from './functions/blob'
 import bufferToString from './functions/bufferToString'
+import convertCurrencyFromSubunit from './functions/convertCurrencyFromSubunit'
+import convertCurrencyToSubunit from './functions/convertCurrencyToSubunit'
+import convertHtmlToMarkdown from './functions/convertHtmlToMarkdown'
+import convertMarkdownToGoogleDocs from './functions/convertMarkdownToGoogleDocs'
+import convertMarkdownToHtml from './functions/convertMarkdownToHtml'
+import convertMarkdownToNotion from './functions/convertMarkdownToNotion'
+import convertMarkdownToSlack from './functions/convertMarkdownToSlack'
+import convertNotionToMarkdown from './functions/convertNotionToMarkdown'
+import convertNotionToMd from './functions/convertNotionToMd'
+import convertQueryToSql from './functions/convertQueryToSql'
+import digest from './functions/digest'
+import dtFromFormat from './functions/dtFromFormat'
+import dtFromIso from './functions/dtFromIso'
+import firstNonEmpty from './functions/firstNonEmpty'
+import generateEmbeddingsCohere from './functions/generateEmbeddingsCohere'
+import getArrayBuffer from './functions/getArrayBuffer'
+import getDataUri from './functions/getDataUri'
+import getMimeType from './functions/getMimeType'
+import jsonParse from './functions/jsonParse'
+import jsToXml from './functions/jsToXml'
+import mapValues from './functions/mapValues'
+import mostSimilar from './functions/mostSimilar'
+import parseDocument from './functions/parseDocument'
 import parseQuery from './functions/parseQuery'
+import parseUrl from './functions/parseUrl'
+import { recursiveCharacterTextSplitter } from './functions/recursiveCharacterTextSplitter'
+import removeEmpty from './functions/removeEmpty'
+import removeEmptyItems from './functions/removeEmptyItems'
+import sign from './functions/sign'
+import sortNodes from './functions/sortNodes'
 import stringifyQuery from './functions/stringifyQuery'
+import teeStream from './functions/teeStream'
+import toNumber from './functions/toNumber'
+import uuid from './functions/uuid'
+import xmlToJs from './functions/xmlToJs'
+import zipSqlResponse from './functions/zipSqlResponse'
 
 export default function registerJsonataExtensions(expression: Expression) {
   expression.registerFunction('dtFromIso', dtFromIso)
   expression.registerFunction('base64decode', base64decode)
   expression.registerFunction('base64encode', base64encode)
+  expression.registerFunction('base64ToBlob', base64ToBlob)
   expression.registerFunction('dtFromFormat', dtFromFormat)
   expression.registerFunction('removeEmpty', removeEmpty)
   expression.registerFunction('removeEmptyItems', removeEmptyItems)
