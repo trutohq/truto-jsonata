@@ -1,8 +1,7 @@
 // @ts-ignore
 import { createDocument } from '@mixmark-io/domino'
+import { gfm } from '@truto/turndown-plugin-gfm'
 import TurndownService from 'turndown'
-// @ts-ignore
-import { gfm } from '@joplin/turndown-plugin-gfm'
 
 const convertHtmlToMarkdown = (html: string) => {
   const htmlDoc = createDocument(html)

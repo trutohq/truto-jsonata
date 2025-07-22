@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.0.24",
+  "version": "1.0.25",
   "description": "Truto extension of jsonata",
   "repository": "https://github.com/trutohq/truto-jsonata.git",
   "source": "src/index.ts",
@@ -49,10 +49,10 @@
     "vitest": "3.0.9"
   },
   "dependencies": {
-    "@joplin/turndown-plugin-gfm": "1.0.62",
     "@langchain/core": "0.3.37",
     "@langchain/textsplitters": "0.1.0",
     "@mixmark-io/domino": "2.2.0",
+    "@truto/turndown-plugin-gfm": "1.0.0",
     "dependency-graph": "1.0.0",
     "dice-coefficient": "2.1.1",
     "json2md": "2.0.1",
