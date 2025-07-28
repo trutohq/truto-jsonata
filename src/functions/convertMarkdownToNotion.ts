@@ -1,9 +1,7 @@
-import { Lexer, Token } from 'marked'
 import {
   compact,
   concat,
   each,
-  flatten,
   flattenDeep,
   get,
   groupBy,
@@ -11,7 +9,8 @@ import {
   map,
   reduce,
   set,
-} from 'lodash-es'
+} from 'lodash'
+import { Lexer, Token } from 'marked'
 import decodeHtmlEntities from './decodeHtmlEntities'
 import insertBetween from './insertBetween'
 

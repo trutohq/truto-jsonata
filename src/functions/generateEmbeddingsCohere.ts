@@ -1,4 +1,4 @@
-import { castArray, chunk, isEmpty } from 'lodash-es'
+import { castArray, chunk, isEmpty } from 'lodash'
 import pMap from 'p-map'
 import pRetry, { AbortError } from 'p-retry'
 

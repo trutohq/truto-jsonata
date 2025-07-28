@@ -1,4 +1,4 @@
-import { isNil } from 'lodash-es'
+import { isNil } from 'lodash'
 import currency from './currency.json'
 
 function convertCurrencyToSubunit(arg: string, currencyCode: string) {

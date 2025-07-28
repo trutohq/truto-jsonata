@@ -1,4 +1,4 @@
-import { castArray, flatMap } from 'lodash-es'
+import { castArray, flatMap } from 'lodash'
 
 const insertBetween = (arr: any[], value: any) => {
   return flatMap(arr, (item, index) => {
