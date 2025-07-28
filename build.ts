@@ -2,6 +2,7 @@ await Bun.build({
   entrypoints: ['./src/index.ts'],
   outdir: './dist/cjs',
   format: 'cjs',
+  naming: 'index.cjs',
   sourcemap: "external",
 })
 
