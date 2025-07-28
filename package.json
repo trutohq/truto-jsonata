@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.0.27",
+  "version": "1.0.28",
   "description": "Truto extension of jsonata",
   "repository": "https://github.com/trutohq/truto-jsonata.git",
   "source": "src/index.ts",
@@ -19,6 +19,23 @@
     ".": {
       "require": "./dist/main.cjs",
       "import": "./dist/module.js"
+    }
+  },
+  "targets": {
+    "main": {
+      "includeNodeModules": [
+        "@truto/turndown-plugin-gfm"
+      ]
+    },
+    "module": {
+      "includeNodeModules": [
+        "@truto/turndown-plugin-gfm"
+      ]
+    },
+    "browser": {
+      "includeNodeModules": [
+        "@truto/turndown-plugin-gfm"
+      ]
     }
   },
   "type": "module",
