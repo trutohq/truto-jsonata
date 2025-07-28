@@ -1,4 +1,4 @@
-import { omit, sortBy, get } from 'lodash-es'
+import { get, omit, sortBy } from 'lodash'
 
 // Define a type for the nodes to make it more explicit
 export type Node = {

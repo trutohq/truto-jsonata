@@ -1,4 +1,4 @@
-import { castArray, flatten, map, reject, repeat } from 'lodash-es'
+import { castArray, flatten, map, reject, repeat } from 'lodash'
 
 const formatPlainText = (x: any) => {
   if (x) {

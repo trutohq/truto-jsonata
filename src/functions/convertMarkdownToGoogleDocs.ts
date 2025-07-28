@@ -1,7 +1,7 @@
+import { concat, each, find, get, isEmpty, isEqual, reduce } from 'lodash'
 import { Lexer, Token } from 'marked'
-import { concat, each, find, get, isEmpty, isEqual, reduce } from 'lodash-es'
-import insertBetween from './insertBetween'
 import decodeHtmlEntities from './decodeHtmlEntities'
+import insertBetween from './insertBetween'
 
 const parseMarkedTokenToGoogleDocsRequest = (
   tokens: Token[],

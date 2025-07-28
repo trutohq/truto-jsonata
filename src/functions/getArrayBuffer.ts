@@ -1,6 +1,8 @@
-import { isFunction } from 'lodash-es'
+import { isFunction } from 'lodash'
 
 async function getArrayBuffer(file?: Blob) {
-  return file && isFunction(file.arrayBuffer) ? await file.arrayBuffer() : undefined
+  return file && isFunction(file.arrayBuffer)
+    ? await file.arrayBuffer()
+    : undefined
 }
 export default getArrayBuffer

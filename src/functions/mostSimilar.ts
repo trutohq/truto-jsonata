@@ -1,5 +1,5 @@
 import { diceCoefficient } from 'dice-coefficient'
-import { reduce } from 'lodash-es'
+import { reduce } from 'lodash'
 
 function getNormalizedString(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]/g, '')

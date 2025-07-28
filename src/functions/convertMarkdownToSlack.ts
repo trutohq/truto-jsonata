@@ -1,4 +1,3 @@
-import { Lexer, Token } from 'marked'
 import {
   concat,
   filter,
@@ -10,7 +9,8 @@ import {
   join,
   map,
   reduce,
-} from 'lodash-es'
+} from 'lodash'
+import { Lexer, Token } from 'marked'
 
 const parseMarkedTokenToSlackRequest = (
   tokens: Token[],

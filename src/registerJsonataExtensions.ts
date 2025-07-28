@@ -16,7 +16,7 @@ import {
   orderBy,
   pick,
   values,
-} from 'lodash-es'
+} from 'lodash'
 import base64decode from './functions/base64decode'
 import base64encode from './functions/base64encode'
 import base64ToBlob from './functions/base64ToBlob'

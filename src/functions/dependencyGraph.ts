@@ -1,5 +1,5 @@
 import { DepGraph } from 'dependency-graph'
-import { get, keyBy } from 'lodash-es'
+import { get, keyBy } from 'lodash'
 
 const dependencyGraph = (array: unknown[], parentKey: string, key: string) => {
   const graph = new DepGraph()
