@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.0.30",
+  "version": "1.0.31",
   "description": "Truto extension of jsonata",
   "repository": "https://github.com/trutohq/truto-jsonata.git",
   "source": "src/index.ts",
@@ -24,7 +24,11 @@
   "targets": {
     "main": {
       "includeNodeModules": true
-    }
+    },
+    "browser": {
+      "includeNodeModules": true
+    },
+    "module": {}
   },
   "type": "module",
   "license": "MIT",
