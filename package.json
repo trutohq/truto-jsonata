@@ -52,7 +52,7 @@
     "@langchain/core": "0.3.37",
     "@langchain/textsplitters": "0.1.0",
     "@mixmark-io/domino": "2.2.0",
-    "@truto/turndown-plugin-gfm": "1.0.0",
+    "@truto/turndown-plugin-gfm": "1.0.2",
     "dependency-graph": "1.0.0",
     "dice-coefficient": "2.1.1",
     "json2md": "2.0.1",
