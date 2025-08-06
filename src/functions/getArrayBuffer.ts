@@ -1,4 +1,4 @@
-import { isFunction } from 'lodash'
+import { isFunction } from 'lodash-es'
 
 async function getArrayBuffer(file?: Blob) {
   return file && isFunction(file.arrayBuffer)

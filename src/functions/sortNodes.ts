@@ -1,4 +1,4 @@
-import { get, omit, sortBy } from 'lodash'
+import { get, omit, sortBy } from 'lodash-es'
 
 // Define a type for the nodes to make it more explicit
 export type Node = {
@@ -41,7 +41,7 @@ export function sortNodes(
 
   // Step 4: Recursive function to sort nodes and their children
   function sortTree(nodes: Node[]): Node[] {
-    // Sort nodes using lodash by sequence
+    // Sort nodes using lodash-es by sequence
     const sortedNodes = sortBy(nodes, sequenceKey)
     sortedNodes.forEach(node => {
       if (node.children && node.children.length > 0) {

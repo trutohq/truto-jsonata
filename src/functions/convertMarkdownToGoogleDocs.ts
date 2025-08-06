@@ -1,4 +1,4 @@
-import { concat, each, find, get, isEmpty, isEqual, reduce } from 'lodash'
+import { concat, each, find, get, isEmpty, isEqual, reduce } from 'lodash-es'
 import { Lexer, Token } from 'marked'
 import decodeHtmlEntities from './decodeHtmlEntities'
 import insertBetween from './insertBetween'

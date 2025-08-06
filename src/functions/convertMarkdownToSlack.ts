@@ -9,7 +9,7 @@ import {
   join,
   map,
   reduce,
-} from 'lodash'
+} from 'lodash-es'
 import { Lexer, Token } from 'marked'
 
 const parseMarkedTokenToSlackRequest = (
