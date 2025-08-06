@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import convertMarkdownToAdf from '../functions/convertMarkdowntoAdf'
+import convertMarkdownToAdf from '../functions/convertMarkdownToAdf'
 
 const markdown = `
 # Meeting with Nachi
