@@ -9,7 +9,7 @@ import {
   map,
   reduce,
   set,
-} from 'lodash'
+} from 'lodash-es'
 import { Lexer, Token } from 'marked'
 import decodeHtmlEntities from './decodeHtmlEntities'
 import insertBetween from './insertBetween'

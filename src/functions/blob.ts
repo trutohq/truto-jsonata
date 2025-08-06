@@ -1,4 +1,4 @@
-import { castArray } from 'lodash'
+import { castArray } from 'lodash-es'
 
 function blob(
   content: ArrayBuffer[] | string[] | Blob[] | ArrayBufferView[] | undefined,

@@ -1,4 +1,4 @@
-import { toNumber as toNumberValue } from 'lodash'
+import { toNumber as toNumberValue } from 'lodash-es'
 function toNumber(value: string) {
   return toNumberValue(value)
 }

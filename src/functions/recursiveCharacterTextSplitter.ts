@@ -1,5 +1,5 @@
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters'
-import { isArray, isPlainObject, isString, toString } from 'lodash'
+import { isArray, isPlainObject, isString, toString } from 'lodash-es'
 
 export async function recursiveCharacterTextSplitter(
   text: string | object | any[],
