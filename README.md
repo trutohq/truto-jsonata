@@ -1009,6 +1009,32 @@ expression2.evaluate({ text: text2, algorithm: algorithm2, secret: secret2, outp
 </details>
 
 <details>
+<summary>signJwt(payload, secretOrPrivateKey, options)</summary>
+
+Signs a JWT using the `jsonwebtoken` library. Supports HMAC, RSA, and ECDSA algorithms based on the provided key and options. Defaults to HS256 and adds a `typ: 'JWT'` header.
+
+**Example:**
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
+// Basic HS256 signing
+const expression = trutoJsonata('$signJwt({"sub": "1234567890", "name": "John Doe"}, "your-256-bit-secret")');
+expression.evaluate({}).then(result => {
+  console.log(result);
+  // Output: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.<signature>"
+});
+
+// With options (expiresIn, custom header.kid)
+const expressionWithOptions = trutoJsonata('$signJwt({"sub": "user1"}, "secret", {"expiresIn": "1h", "algorithm": "HS256", "header": {"kid": "key1"}})');
+expressionWithOptions.evaluate({}).then(result => {
+  console.log(result);
+});
+```
+
+</details>
+
+<details>
 <summary>xmlToJs(xml, options = { compact: true, spaces: 4 } )</summary>
 
 Converts an XML string into a JavaScript object.
