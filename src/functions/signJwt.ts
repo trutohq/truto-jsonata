@@ -10,27 +10,19 @@ function assertObjectPayload(payload: unknown): asserts payload is object {
   }
 }
 
-const signJwt = async (
-  payload: unknown,
-  secretOrPrivateKey: unknown,
+const signJwt = async (config: {
+  payload: unknown
+  secretOrPrivateKey: unknown
   options?: any
-): Promise<string> => {
+}): Promise<string> => {
+  const { payload, secretOrPrivateKey, options } = config
   assertObjectPayload(payload)
-
-  const finalOptions = {
-    algorithm: 'HS256',
-    ...(options || {}),
-    header: {
-      typ: 'JWT',
-      ...((options && options.header) || {}),
-    },
-  }
 
   try {
     return jsonwebtoken.sign(
       payload as Record<string, any>,
       secretOrPrivateKey as any,
-      finalOptions
+      options
     )
   } catch (error: any) {
     throw new Error(`JWT signing failed: ${error?.message || String(error)}`)
