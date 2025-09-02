@@ -1009,26 +1009,27 @@ expression2.evaluate({ text: text2, algorithm: algorithm2, secret: secret2, outp
 </details>
 
 <details>
-<summary>signJwt(payload, secretOrPrivateKey, options)</summary>
+<summary>signJwt(config)</summary>
 
-Signs a JWT using the `jsonwebtoken` library. Supports HMAC, RSA, and ECDSA algorithms based on the provided key and options. Defaults to HS256 and adds a `typ: 'JWT'` header.
+Signs a JWT using the jsonwebtoken library. The config is an object with payload (required object), secretOrPrivateKey (required string/buffer), and optional options (object for algorithm, expiresIn, etc.).
 
 **Example:**
 
 ```javascript
 import trutoJsonata from '@truto/truto-jsonata';
 
-// Basic HS256 signing
-const expression = trutoJsonata('$signJwt({"sub": "1234567890", "name": "John Doe"}, "your-256-bit-secret")');
+// Basic HS256 signing (no options)
+const expression = trutoJsonata('$signJwt({"payload": {"sub": "1234567890", "name": "John Doe"}, "secretOrPrivateKey": "your-256-bit-secret"})');
 expression.evaluate({}).then(result => {
   console.log(result);
   // Output: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.<signature>"
 });
 
-// With options (expiresIn, custom header.kid)
-const expressionWithOptions = trutoJsonata('$signJwt({"sub": "user1"}, "secret", {"expiresIn": "1h", "algorithm": "HS256", "header": {"kid": "key1"}})');
+// With options (expiresIn, algorithm, custom header)
+const expressionWithOptions = trutoJsonata('$signJwt({"payload": {"sub": "user1"}, "secretOrPrivateKey": "secret", "options": {"expiresIn": "1h", "algorithm": "HS256", "header": {"kid": "key1"}}})');
 expressionWithOptions.evaluate({}).then(result => {
   console.log(result);
+  // Output: A signed JWT string with the specified options
 });
 ```
 
