@@ -10,12 +10,11 @@ function assertObjectPayload(payload: unknown): asserts payload is object {
   }
 }
 
-const signJwt = async (config: {
-  payload: unknown
-  secretOrPrivateKey: unknown
+const signJwt = async (
+  payload: unknown,
+  secretOrPrivateKey: unknown,
   options?: any
-}): Promise<string> => {
-  const { payload, secretOrPrivateKey, options } = config
+): Promise<string> => {
   assertObjectPayload(payload)
 
   try {
