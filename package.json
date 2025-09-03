@@ -57,7 +57,7 @@
     "@truto/turndown-plugin-gfm": "1.0.2",
     "dependency-graph": "1.0.0",
     "dice-coefficient": "2.1.1",
-    "jose": "^6.1.0",
+    "jose": "6.1.0",
     "json2md": "2.0.1",
     "jsonata": "2.0.6",
     "lodash-es": "4.17.21",
