@@ -10,8 +10,8 @@ function assertObjectPayload(payload: unknown): asserts payload is object {
 const signJwt = async (
   payload: unknown,
   key: unknown,
-  signOptions: any,
-  protectHeaders: Record<string, any> = {}
+  protectHeaders: Record<string, any> = {},
+  signOptions?: any
 ): Promise<string> => {
   assertObjectPayload(payload)
 
