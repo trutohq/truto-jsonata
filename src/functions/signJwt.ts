@@ -1,5 +1,5 @@
 import { SignJWT, importPKCS8 } from 'jose'
-import { isPlainObject, isNull } from 'lodash-es'
+import { isPlainObject, isNull, isString } from 'lodash-es'
 
 function assertObjectPayload(payload: unknown): asserts payload is object {
   if (!isPlainObject(payload) || isNull(payload)) {
@@ -27,15 +27,14 @@ const signJwt = async (
       alg.startsWith('RS') || alg.startsWith('ES') || alg.startsWith('PS')
 
     if (isAsymmetric) {
-      if (typeof key !== 'string') {
+      if (!isString(key)) {
         throw new Error('For asymmetric algorithms, key must be a PEM string')
       }
       signingKey = await importPKCS8(key, alg)
     } else {
-      signingKey =
-        typeof key === 'string'
-          ? new TextEncoder().encode(key)
-          : (key as Uint8Array)
+      signingKey = isString(key)
+        ? new TextEncoder().encode(key)
+        : (key as Uint8Array)
     }
 
     const jwtBuilder = new SignJWT(
