@@ -1,8 +1,8 @@
 import { SignJWT } from 'jose'
-import { isPlainObject, isNull, isArray } from 'lodash-es'
+import { isPlainObject, isNull, isString } from 'lodash-es'
 
 function assertObjectPayload(payload: unknown): asserts payload is object {
-  if (!isPlainObject(payload) || isNull(payload) || isArray(payload)) {
+  if (!isPlainObject(payload) || isNull(payload)) {
     throw new Error('Payload must be a non-null object')
   }
 }
@@ -15,10 +15,9 @@ const signJwt = async (
   assertObjectPayload(payload)
 
   try {
-    const secret =
-      typeof secretOrPrivateKey === 'string'
-        ? new TextEncoder().encode(secretOrPrivateKey)
-        : (secretOrPrivateKey as Uint8Array)
+    const secret = isString(secretOrPrivateKey)
+      ? new TextEncoder().encode(secretOrPrivateKey)
+      : (secretOrPrivateKey as Uint8Array)
 
     const jwtBuilder = new SignJWT(
       payload as Record<string, any>
