@@ -36,12 +36,11 @@ describe('signJwt', () => {
 		const secret = 'test-secret'
 		const headers = { alg: 'HS256' }
 		const token = await signJwt(payload, secret,  headers , {})
-		console.log(token)
 		expect(typeof token).toBe('string')
 		expect(token.split('.').length).toBe(3)
 	})
 
 	it('should throw error for invalid payload', async () => {
-		await expect(signJwt('invalid', 'secret', {}, { alg: 'HS256' })).rejects.toThrow('Payload must be a non-null object')
+		await expect(signJwt('invalid', 'secret', { alg: 'HS256' }, {})).rejects.toThrow('Payload must be a non-null object')
 	})
 }) 
