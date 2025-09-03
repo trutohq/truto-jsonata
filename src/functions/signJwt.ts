@@ -1,4 +1,4 @@
-import jwt from '@tsndr/cloudflare-worker-jwt'
+import { SignJWT } from 'jose'
 import { isPlainObject, isNull, isArray } from 'lodash-es'
 
 function assertObjectPayload(payload: unknown): asserts payload is object {
@@ -15,11 +15,27 @@ const signJwt = async (
   assertObjectPayload(payload)
 
   try {
-    return await jwt.sign(
-      payload as Record<string, any>,
-      secretOrPrivateKey as any,
-      options
-    )
+    const alg = (options && options.algorithm) || 'HS256'
+    const secret =
+      typeof secretOrPrivateKey === 'string'
+        ? new TextEncoder().encode(secretOrPrivateKey)
+        : (secretOrPrivateKey as Uint8Array)
+
+    const jwtBuilder = new SignJWT(
+      payload as Record<string, any>
+    ).setProtectedHeader({ alg, typ: 'JWT', ...(options && options.header) })
+
+    if (options?.expiresIn) {
+      jwtBuilder.setExpirationTime(options.expiresIn)
+    }
+    if (options?.notBefore) {
+      jwtBuilder.setNotBefore(options.notBefore)
+    }
+    if ((payload as any).iat === undefined && !options?.noTimestamp) {
+      jwtBuilder.setIssuedAt()
+    }
+
+    return await jwtBuilder.sign(secret)
   } catch (error: any) {
     throw new Error(`JWT signing failed: ${error?.message || String(error)}`)
   }

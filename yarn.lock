@@ -1250,11 +1250,6 @@
   optionalDependencies:
     "@rollup/rollup-linux-x64-gnu" "4.45.1"
 
-"@tsndr/cloudflare-worker-jwt@^3.2.0":
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/@tsndr/cloudflare-worker-jwt/-/cloudflare-worker-jwt-3.2.0.tgz#bc3f149f36409dedfac96c325d33867f23ac4295"
-  integrity sha512-y45452JzKxFDfCUHNGrdgIcrJTkYa6xtrKtCQTjKj+hjzw8dOHF9R0uGuU8WxvCCMi4sMzZ1KREnZTsTy7DsiQ==
-
 "@types/bun@1.2.19":
   version "1.2.19"
   resolved "https://registry.yarnpkg.com/@types/bun/-/bun-1.2.19.tgz#3fb37a59e56d5dd2276653db5b6a022989b6e465"
@@ -2257,6 +2252,11 @@ isexe@^2.0.0:
   version "2.0.0"
   resolved "https://registry.npmjs.org/isexe/-/isexe-2.0.0.tgz"
   integrity sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==
+
+jose@^6.1.0:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/jose/-/jose-6.1.0.tgz#96285365689d16f2845a353964d2284bf19f464c"
+  integrity sha512-TTQJyoEoKcC1lscpVDCSsVgYzUDg/0Bt3WE//WiTPK6uOCQC2KZS4MpugbMWt/zyjkopgZoXhZuCi00gLudfUA==
 
 js-sdsl@^4.1.4:
   version "4.4.2"
