@@ -1,4 +1,4 @@
-import jsonwebtoken from 'jsonwebtoken'
+import jwt from '@tsndr/cloudflare-worker-jwt'
 import { isPlainObject, isNull, isArray } from 'lodash-es'
 
 function assertObjectPayload(payload: unknown): asserts payload is object {
@@ -15,7 +15,7 @@ const signJwt = async (
   assertObjectPayload(payload)
 
   try {
-    return jsonwebtoken.sign(
+    return await jwt.sign(
       payload as Record<string, any>,
       secretOrPrivateKey as any,
       options

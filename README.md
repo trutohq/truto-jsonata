@@ -1011,7 +1011,7 @@ expression2.evaluate({ text: text2, algorithm: algorithm2, secret: secret2, outp
 <details>
 <summary>signJwt(payload, secretOrPrivateKey, options)</summary>
 
-Generates a signed JWT using the jsonwebtoken library. Supports various algorithms via options.
+Generates a signed JWT using the cloudflare-worker-jwt library. Supports various algorithms via options.
 
 **Example:**
 
@@ -1024,8 +1024,7 @@ const options = { expiresIn: '1h', algorithm: 'HS256' };
 
 const expression = trutoJsonata('$signJwt(payload, secretOrPrivateKey, options)');
 expression.evaluate({ payload, secretOrPrivateKey, options }).then(result => {
-  console.log(result);
-  // Output: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.<signature>"
+  // Output: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.<signature>"
 });
 ```
 

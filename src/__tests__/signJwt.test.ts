@@ -8,7 +8,7 @@ describe('signJwt', () => {
 		const token = await signJwt(payload, secret)
 		expect(typeof token).toBe('string')
 		expect(token.split('.').length).toBe(3)
-		expect(token).toMatch(/^eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\./)
+		expect(token).toMatch(/^eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9\./)
 	})
 
 	it('should sign a JWT with custom options (expiresIn, header.kid)', async () => {
