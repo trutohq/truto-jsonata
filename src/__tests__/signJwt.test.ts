@@ -6,7 +6,6 @@ describe('signJwt', () => {
 		const payload = { sub: '1234567890', name: 'muleyyy' }
 		const secret = 'sjdfosjdfsdfj'
 		const token = await signJwt(payload, secret)
-        console.log(token)
 		expect(typeof token).toBe('string')
 		expect(token.split('.').length).toBe(3)
 		expect(token).toMatch(/^eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\./)
@@ -17,7 +16,6 @@ describe('signJwt', () => {
 		const secret = 'sjdfosjdfsdfasasasasasasasj'
 		const options = { algorithm: 'HS256', expiresIn: '1h', header: { kid: 'key1' } }
 		const token = await signJwt(payload, secret, options)
-        console.log(token)
 		expect(typeof token).toBe('string')
 		expect(token.split('.').length).toBe(3)
 	})
