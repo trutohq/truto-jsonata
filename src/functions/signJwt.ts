@@ -10,12 +10,11 @@ function assertObjectPayload(payload: unknown): asserts payload is object {
 const signJwt = async (
   payload: unknown,
   secretOrPrivateKey: unknown,
-  options?: any
+  headers?: Record<string, any>
 ): Promise<string> => {
   assertObjectPayload(payload)
 
   try {
-    const alg = (options && options.algorithm) || 'HS256'
     const secret =
       typeof secretOrPrivateKey === 'string'
         ? new TextEncoder().encode(secretOrPrivateKey)
@@ -23,17 +22,7 @@ const signJwt = async (
 
     const jwtBuilder = new SignJWT(
       payload as Record<string, any>
-    ).setProtectedHeader({ alg, typ: 'JWT', ...(options && options.header) })
-
-    if (options?.expiresIn) {
-      jwtBuilder.setExpirationTime(options.expiresIn)
-    }
-    if (options?.notBefore) {
-      jwtBuilder.setNotBefore(options.notBefore)
-    }
-    if ((payload as any).iat === undefined && !options?.noTimestamp) {
-      jwtBuilder.setIssuedAt()
-    }
+    ).setProtectedHeader({ alg: 'HS256', typ: 'JWT', ...headers })
 
     return await jwtBuilder.sign(secret)
   } catch (error: any) {

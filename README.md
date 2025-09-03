@@ -1009,22 +1009,55 @@ expression2.evaluate({ text: text2, algorithm: algorithm2, secret: secret2, outp
 </details>
 
 <details>
-<summary>signJwt(payload, secretOrPrivateKey, options)</summary>
+<summary>signJwt(payload, secretOrPrivateKey, headers = { alg: 'HS256', typ: 'JWT' })</summary>
 
-Generates a signed JWT using the JOSE library. Supports various algorithms via options.
+Generates a signed JWT using the JOSE library. This function now accepts headers directly and extracts JWT claims (like `exp`, `nbf`, `iat`) directly from the payload. The `alg` in the header defaults to 'HS256' if not provided.
 
 **Example:**
 
 ```javascript
 import trutoJsonata from '@truto/truto-jsonata';
 
-const payload = { sub: '1234567890', name: 'John Doe' };
+const payload = {
+  sub: '1234567890',
+  name: 'John Doe',
+  exp: Math.floor(Date.now() / 1000) + 3600, // Expires in 1 hour
+  iat: Math.floor(Date.now() / 1000) // Issued at current time
+};
 const secretOrPrivateKey = 'your-256-bit-secret';
-const options = { expiresIn: '1h', algorithm: 'HS256' };
+const headers = { alg: 'HS256', kid: 'custom-key-id' }; // Optional custom headers
 
-const expression = trutoJsonata('$signJwt(payload, secretOrPrivateKey, options)');
-expression.evaluate({ payload, secretOrPrivateKey, options }).then(result => {
-  // Output: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.<signature>"
+const expression = trutoJsonata('$signJwt(payload, secretOrPrivateKey, headers)');
+expression.evaluate({ payload, secretOrPrivateKey, headers }).then(result => {
+  console.log(result); 
+  // Output: "eyJhbGciOiJIUzI1NiIsImtpZCI6ImN1c3RvbS1rZXktaWQiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiZXhwIjoxNzA3MjMzNjAwLCJpYXQiOjE3MDcyMzAwMDB9.<signature>"
+});
+```
+
+**Google Service Account Example:**
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
+const serviceAccountPayload = {
+  "iss": "service-account@my-project.iam.gserviceaccount.com",
+  "sub": ,
+  "scope": ,
+  "aud": ,
+  "iat": Math.floor(Date.now() / 1000),
+  "exp": Math.floor(Date.now() / 1000) + 3600 /
+};
+
+const serviceAccountHeaders = { alg: 'HS256' }; // Algorithm can be HS256 for testing, or RS256 with proper private key
+
+const serviceAccountExpression = trutoJsonata('$signJwt(serviceAccountPayload, serviceAccountSecret, serviceAccountHeaders)');
+serviceAccountExpression.evaluate({ 
+  serviceAccountPayload,
+  serviceAccountSecret,
+  serviceAccountHeaders 
+}).then(result => {
+  console.log(result);
+  // Output: Signed JWT string for Google service account
 });
 ```
 
