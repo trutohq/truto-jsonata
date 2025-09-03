@@ -59,6 +59,7 @@ import toNumber from './functions/toNumber'
 import uuid from './functions/uuid'
 import xmlToJs from './functions/xmlToJs'
 import zipSqlResponse from './functions/zipSqlResponse'
+import signJwt from './functions/signJwt'
 
 export default function registerJsonataExtensions(expression: Expression) {
   expression.registerFunction('dtFromIso', dtFromIso)
@@ -114,6 +115,7 @@ export default function registerJsonataExtensions(expression: Expression) {
   expression.registerFunction('convertMarkdownToHtml', convertMarkdownToHtml)
   expression.registerFunction('digest', digest)
   expression.registerFunction('sign', sign)
+  expression.registerFunction('signJwt', signJwt)
   expression.registerFunction('xmlToJs', xmlToJs)
   expression.registerFunction('jsToXml', jsToXml)
   expression.registerFunction(
