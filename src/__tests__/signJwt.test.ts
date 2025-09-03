@@ -5,7 +5,7 @@ describe('signJwt', () => {
 	it('should sign a JWT with default options (HS256)', async () => {
 		const payload = { sub: '1234567890', name: 'muleyyy' }
 		const secret = 'sjdfosjdfsdfj'
-		const token = await signJwt(payload, secret)
+		const token = await signJwt(payload, secret, {}, { alg: 'HS256' })
 		expect(typeof token).toBe('string')
 		expect(token.split('.').length).toBe(3)
 		expect(token).toMatch(/^eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\./)
@@ -19,7 +19,7 @@ describe('signJwt', () => {
 		}
 		const secret = 'sjdfosjdfsdfasasasasasasasj'
 		const headers = { alg: 'HS256', kid: 'key1' }
-		const token = await signJwt(payload, secret, headers)
+		const token = await signJwt(payload, secret, {}, headers)
 		expect(typeof token).toBe('string')
 		expect(token.split('.').length).toBe(3)
 	})
@@ -35,12 +35,13 @@ describe('signJwt', () => {
 		}
 		const secret = 'test-secret'
 		const headers = { alg: 'HS256' }
-		const token = await signJwt(payload, secret, headers)
+		const token = await signJwt(payload, secret, {}, headers)
+		console.log(token)
 		expect(typeof token).toBe('string')
 		expect(token.split('.').length).toBe(3)
 	})
 
 	it('should throw error for invalid payload', async () => {
-		await expect(signJwt('invalid', 'secret')).rejects.toThrow('Payload must be a non-null object')
+		await expect(signJwt('invalid', 'secret', {}, { alg: 'HS256' })).rejects.toThrow('Payload must be a non-null object')
 	})
 }) 

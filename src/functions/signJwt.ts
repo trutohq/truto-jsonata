@@ -11,7 +11,7 @@ const signJwt = async (
   payload: unknown,
   key: unknown,
   signOptions: any,
-  protectHeaders?: Record<string, any>
+  protectHeaders: Record<string, any> = {}
 ): Promise<string> => {
   assertObjectPayload(payload)
 
@@ -20,9 +20,13 @@ const signJwt = async (
       ? new TextEncoder().encode(key)
       : (key as Uint8Array)
 
+    if (!protectHeaders.alg) {
+      throw new Error('Algorithm (alg) must be provided in protectHeaders')
+    }
+
     const jwtBuilder = new SignJWT(
       payload as Record<string, any>
-    ).setProtectedHeader({ alg: 'HS256', typ: 'JWT', ...protectHeaders })
+    ).setProtectedHeader({ ...protectHeaders, typ: 'JWT' } as any)
 
     return await jwtBuilder.sign(secret, signOptions)
   } catch (error: any) {
