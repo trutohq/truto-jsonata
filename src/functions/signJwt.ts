@@ -31,7 +31,45 @@ const signJwt = async (
         throw new Error('For asymmetric algorithms, key must be a PEM string')
       }
       const pemKey = includes(key, '\\n') ? replace(key, /\\n/g, '\n') : key
-      signingKey = await importPKCS8(pemKey, alg)
+
+      // Environment-specific key import
+      const processObj = (globalThis as any).process
+      const isNode =
+        typeof processObj !== 'undefined' && !!processObj?.versions?.node
+
+      if (isNode) {
+        // Node.js environment
+        signingKey = await importPKCS8(pemKey, alg)
+      } else {
+        // Browser/Worker environment - use Web Crypto API directly
+        const keyData = pemKey
+          .replace(/-----BEGIN PRIVATE KEY-----/, '')
+          .replace(/-----END PRIVATE KEY-----/, '')
+          .replace(/\s/g, '')
+
+        const binaryKey = Uint8Array.from(atob(keyData), c => c.charCodeAt(0))
+
+        const algorithm = {
+          name: alg.startsWith('RS')
+            ? 'RSASSA-PKCS1-v1_5'
+            : alg.startsWith('PS')
+            ? 'RSA-PSS'
+            : 'ECDSA',
+          hash: alg.includes('256')
+            ? 'SHA-256'
+            : alg.includes('384')
+            ? 'SHA-384'
+            : 'SHA-512',
+        }
+
+        signingKey = await crypto.subtle.importKey(
+          'pkcs8',
+          binaryKey,
+          algorithm,
+          false,
+          ['sign']
+        )
+      }
     } else {
       signingKey = isString(key)
         ? new TextEncoder().encode(key)
