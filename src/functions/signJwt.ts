@@ -9,21 +9,22 @@ function assertObjectPayload(payload: unknown): asserts payload is object {
 
 const signJwt = async (
   payload: unknown,
-  secretOrPrivateKey: unknown,
-  headers?: Record<string, any>
+  key: unknown,
+  signOptions: any,
+  protectHeaders?: Record<string, any>
 ): Promise<string> => {
   assertObjectPayload(payload)
 
   try {
-    const secret = isString(secretOrPrivateKey)
-      ? new TextEncoder().encode(secretOrPrivateKey)
-      : (secretOrPrivateKey as Uint8Array)
+    const secret = isString(key)
+      ? new TextEncoder().encode(key)
+      : (key as Uint8Array)
 
     const jwtBuilder = new SignJWT(
       payload as Record<string, any>
-    ).setProtectedHeader({ alg: 'HS256', typ: 'JWT', ...headers })
+    ).setProtectedHeader({ alg: 'HS256', typ: 'JWT', ...protectHeaders })
 
-    return await jwtBuilder.sign(secret)
+    return await jwtBuilder.sign(secret, signOptions)
   } catch (error: any) {
     throw new Error(`JWT signing failed: ${error?.message || String(error)}`)
   }
