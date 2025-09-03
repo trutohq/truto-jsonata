@@ -1,8 +1,8 @@
 import jsonwebtoken from 'jsonwebtoken'
-import { isObject, isNull, isArray } from 'lodash-es'
+import { isPlainObject, isNull, isArray } from 'lodash-es'
 
 function assertObjectPayload(payload: unknown): asserts payload is object {
-  if (!isObject(payload) || isNull(payload) || isArray(payload)) {
+  if (!isPlainObject(payload) || isNull(payload) || isArray(payload)) {
     throw new Error('Payload must be a non-null object')
   }
 }
