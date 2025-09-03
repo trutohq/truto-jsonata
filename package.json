@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.0.40",
+  "version": "1.0.41",
   "description": "Truto extension of jsonata",
   "repository": "https://github.com/trutohq/truto-jsonata.git",
   "source": "src/index.ts",
@@ -35,7 +35,6 @@
     "@parcel/transformer-typescript-types": "2.15.4",
     "@types/bun": "1.2.19",
     "@types/json2md": "1.5.4",
-    "@types/jsonwebtoken": "9.0.10",
     "@types/lodash-es": "4.17.12",
     "@types/luxon": "3.4.2",
     "@types/node": "20.14.8",
@@ -58,9 +57,9 @@
     "@truto/turndown-plugin-gfm": "1.0.2",
     "dependency-graph": "1.0.0",
     "dice-coefficient": "2.1.1",
+    "jose": "6.1.0",
     "json2md": "2.0.1",
     "jsonata": "2.0.6",
-    "jsonwebtoken": "9.0.2",
     "lodash-es": "4.17.21",
     "luxon": "3.5.0",
     "marked": "14.1.3",
