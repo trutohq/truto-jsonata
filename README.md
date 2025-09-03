@@ -1009,6 +1009,28 @@ expression2.evaluate({ text: text2, algorithm: algorithm2, secret: secret2, outp
 </details>
 
 <details>
+<summary>signJwt(payload, secretOrPrivateKey, options)</summary>
+
+Generates a signed JWT using the cloudflare-worker-jwt library. Supports various algorithms via options.
+
+**Example:**
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
+const payload = { sub: '1234567890', name: 'John Doe' };
+const secretOrPrivateKey = 'your-256-bit-secret';
+const options = { expiresIn: '1h', algorithm: 'HS256' };
+
+const expression = trutoJsonata('$signJwt(payload, secretOrPrivateKey, options)');
+expression.evaluate({ payload, secretOrPrivateKey, options }).then(result => {
+  // Output: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.<signature>"
+});
+```
+
+</details>
+
+<details>
 <summary>xmlToJs(xml, options = { compact: true, spaces: 4 } )</summary>
 
 Converts an XML string into a JavaScript object.
