@@ -59,6 +59,7 @@ import toNumber from './functions/toNumber'
 import uuid from './functions/uuid'
 import xmlToJs from './functions/xmlToJs'
 import zipSqlResponse from './functions/zipSqlResponse'
+import convertMdToPdf from './functions/convertMdToPdf'
 
 export default function registerJsonataExtensions(expression: Expression) {
   expression.registerFunction('dtFromIso', dtFromIso)
@@ -102,6 +103,7 @@ export default function registerJsonataExtensions(expression: Expression) {
       return difference(arr1, arr2)
     }
   )
+  expression.registerFunction('convertMdToPdf', convertMdToPdf)
   expression.registerFunction('toNumber', toNumber)
   expression.registerFunction('jsonParse', jsonParse)
   expression.registerFunction('getMimeType', getMimeType)
