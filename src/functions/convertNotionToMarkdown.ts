@@ -32,7 +32,11 @@ const formatPlainText = (x: any) => {
   }
 }
 
-const convertNotionToMd = function (block: any, level = 1) {
+const convertNotionToMd = function (
+  block: any,
+  level = 1,
+  linkChildPages = false
+) {
   const n = '\n\n'
   const data = block[block.type]
   const plainText = data.rich_text
@@ -47,7 +51,7 @@ const convertNotionToMd = function (block: any, level = 1) {
       return `[${data.url}](data.url)${n}`
     case 'bulleted_list_item':
       childData = map(block.children, child =>
-        convertNotionToMd(child, level + 1)
+        convertNotionToMd(child, level + 1, linkChildPages)
       ).join(repeat('\t', level))
       return (
         `- ${plainText.join('')}\n` +
@@ -55,7 +59,7 @@ const convertNotionToMd = function (block: any, level = 1) {
       )
     case 'numbered_list_item':
       childData = map(block.children, child =>
-        convertNotionToMd(child, level + 1)
+        convertNotionToMd(child, level + 1, linkChildPages)
       ).join(repeat('\t', level))
       return (
         `${block.number}. ${plainText.join('')}\n` +
@@ -96,6 +100,19 @@ const convertNotionToMd = function (block: any, level = 1) {
       return `![${caption.length ? caption : 'Image'}](${
         data.file ? data.file.url : data.external ? data.external.url : ''
       })${n}`
+    case 'child_page':
+      if (linkChildPages) {
+        // Generate a link to the child page instead of including its content
+        const pageTitle = data.title || 'Untitled Page'
+        const pageUrl = `https://www.notion.so/${block.id.replace(/-/g, '')}`
+        return `[${pageTitle}](${pageUrl})${n}`
+      } else {
+        // Include the child page content as before (if children exist)
+        childData = map(block.children, child =>
+          convertNotionToMd(child, level, linkChildPages)
+        ).join('')
+        return (data.title || 'Untitled Page') + n + childData
+      }
     case 'table':
       if (block.children) {
         const firstChild = block.children[0]
@@ -120,16 +137,16 @@ const convertNotionToMd = function (block: any, level = 1) {
         .join(' | ')} |\n`
     case 'to_do':
       childData = map(block.children, child =>
-        convertNotionToMd(child, level + 1)
+        convertNotionToMd(child, level + 1, linkChildPages)
       ).join(repeat('\t', level))
       return (
         `- [${data.checked ? 'X' : ' '}] ${plainText.join('')}\n` +
         (childData ? `${repeat('\t', level)}${childData}` : '')
       )
     default:
-      childData = map(block.children, child => convertNotionToMd(child)).join(
-        ''
-      )
+      childData = map(block.children, child =>
+        convertNotionToMd(child, level, linkChildPages)
+      ).join('')
       return plainText.join('') + n + childData
   }
 }
@@ -189,7 +206,7 @@ const insertNewLinesBetweenLists = function (blocks: any) {
   )
 }
 
-const convertNotionToMarkdown = function (blocks: any) {
+const convertNotionToMarkdown = function (blocks: any, linkChildPages = false) {
   const arrayBlocks = insertNewLinesBetweenLists(castArray(blocks))
   const parentBlocks = reject(
     arrayBlocks,
@@ -201,7 +218,7 @@ const convertNotionToMarkdown = function (blocks: any) {
     })
   )
   return blocksWithChildren
-    .map((block: any) => convertNotionToMd(block))
+    .map((block: any) => convertNotionToMd(block, 1, linkChildPages))
     .join('')
 }
 
