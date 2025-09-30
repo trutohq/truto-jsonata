@@ -17,9 +17,31 @@ type PdfOptions = {
   preferCssPageSize?: boolean
   styles?: string
   baseUrl?: string
+  filename?: string
 }
 
 type AssetHeaders = Record<string, string>
+
+function getFilenameFromHeaders(resp: Response, fallback?: string): string {
+  const cd = resp.headers.get('content-disposition') || ''
+  const matchStar = cd.match(/filename\*=([^;]+)/i)
+  if (matchStar) {
+    const value = matchStar[1].trim()
+    const parts = value.split("''")
+    if (parts.length === 2) {
+      try {
+        return decodeURIComponent(parts[1])
+      } catch {
+        return parts[1]
+      }
+    }
+    return value.replace(/(^['"]|['"]$)/g, '')
+  }
+  const match = cd.match(/filename="?([^";]+)"?/i)
+  if (match) return match[1]
+  return fallback || 'document.pdf'
+}
+
 async function convertMdToPdf(
   this: Focus,
   markdown: string,
@@ -89,7 +111,10 @@ async function convertMdToPdf(
         throw new AbortError(`Expected PDF but received: ${contentType}`)
       }
       const arrayBuffer = await response.arrayBuffer()
-      return new Blob([arrayBuffer], { type: 'application/pdf' })
+      const filename = getFilenameFromHeaders(response, options.filename)
+      const blob: any = new Blob([arrayBuffer], { type: 'application/pdf' })
+      blob.name = filename
+      return blob
     },
     {
       retries: 5,
