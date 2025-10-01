@@ -1,5 +1,6 @@
 import { Focus } from 'jsonata'
 import pRetry, { AbortError } from 'p-retry'
+import { includes, trim } from 'lodash-es'
 
 type PdfOptions = {
   title?: string
@@ -35,7 +36,7 @@ function getFilenameFromHeaders(resp: Response, fallback?: string): string {
         return parts[1]
       }
     }
-    return value.replace(/(^['"]|['"]$)/g, '')
+    return trim(value, '\'"')
   }
   const match = cd.match(/filename="?([^";]+)"?/i)
   if (match) return match[1]
@@ -50,8 +51,6 @@ async function convertMdToPdf(
 ): Promise<Blob> {
   const documentParserApiUrl = this.environment.lookup('documentParserApiUrl')
   const documentParserApiKey = this.environment.lookup('documentParserApiKey')
-  // const documentParserApiUrl = 'http://localhost:3000'
-  // const documentParserApiKey = 'truto'
 
   if (!documentParserApiKey) {
     throw new Error('Document parser API key not found in environment')
@@ -107,7 +106,7 @@ async function convertMdToPdf(
         throw new AbortError(errorMessage)
       }
       const contentType = response.headers.get('content-type')
-      if (!contentType?.includes('application/pdf')) {
+      if (!contentType || !includes(contentType, 'application/pdf')) {
         throw new AbortError(`Expected PDF but received: ${contentType}`)
       }
       const arrayBuffer = await response.arrayBuffer()
