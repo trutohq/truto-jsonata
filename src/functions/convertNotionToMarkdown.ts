@@ -1,4 +1,4 @@
-import { castArray, flatten, map, reject, repeat } from 'lodash-es'
+import { castArray, flatten, join, map, reject, repeat } from 'lodash-es'
 
 const formatPlainText = (x: any) => {
   if (x) {
@@ -50,24 +50,30 @@ const convertNotionToMd = function (
     case 'bookmark':
       return `[${data.url}](data.url)${n}`
     case 'bulleted_list_item':
-      childData = map(block.children, child =>
-        convertNotionToMd(child, level + 1, linkChildPages)
-      ).join(repeat('\t', level))
+      childData = join(
+        map(block.children, child =>
+          convertNotionToMd(child, level + 1, linkChildPages)
+        ),
+        repeat('\t', level)
+      )
       return (
-        `- ${plainText.join('')}\n` +
+        `- ${join(plainText, '')}\n` +
         (childData ? `${repeat('\t', level)}${childData}` : '')
       )
     case 'numbered_list_item':
-      childData = map(block.children, child =>
-        convertNotionToMd(child, level + 1, linkChildPages)
-      ).join(repeat('\t', level))
+      childData = join(
+        map(block.children, child =>
+          convertNotionToMd(child, level + 1, linkChildPages)
+        ),
+        repeat('\t', level)
+      )
       return (
-        `${block.number}. ${plainText.join('')}\n` +
+        `${block.number}. ${join(plainText, '')}\n` +
         (childData ? `${repeat('\t', level)}${childData}` : '')
       )
     case 'quote':
     case 'callout':
-      return `> ${plainText.join('')}${n}`
+      return `> ${join(plainText, '')}${n}`
     case 'code':
       return `\`\`\`${data.language}\n${plainText}\n\`\`\`${n}`
     case 'divider':
@@ -77,7 +83,7 @@ const convertNotionToMd = function (
     case 'equation':
       return data.expression
     case 'paragraph':
-      return plainText.join('') + n
+      return join(plainText, '') + n
     case 'video':
     case 'pdf':
     case 'file':
@@ -85,17 +91,17 @@ const convertNotionToMd = function (
         data.file ? data.file.url : data.external ? data.external.url : ''
       })${n}`
     case 'heading_1':
-      return `# ${plainText.join('')}${n}`
+      return `# ${join(plainText, '')}${n}`
     case 'heading_2':
-      return `## ${plainText.join('')}${n}`
+      return `## ${join(plainText, '')}${n}`
     case 'heading_3':
-      return `### ${plainText.join('')}${n}`
+      return `### ${join(plainText, '')}${n}`
     case 'heading_4':
-      return `#### ${plainText.join('')}${n}`
+      return `#### ${join(plainText, '')}${n}`
     case 'heading_5':
-      return `##### ${plainText.join('')}${n}`
+      return `##### ${join(plainText, '')}${n}`
     case 'heading_6':
-      return `###### ${plainText.join('')}${n}`
+      return `###### ${join(plainText, '')}${n}`
     case 'image':
       return `![${caption.length ? caption : 'Image'}](${
         data.file ? data.file.url : data.external ? data.external.url : ''
@@ -108,46 +114,74 @@ const convertNotionToMd = function (
         return `[${pageTitle}](${pageUrl})${n}`
       } else {
         // Include the child page content as before (if children exist)
-        childData = map(block.children, child =>
-          convertNotionToMd(child, level, linkChildPages)
-        ).join('')
+        childData = join(
+          map(block.children, child =>
+            convertNotionToMd(child, level, linkChildPages)
+          ),
+          ''
+        )
         return (data.title || 'Untitled Page') + n + childData
       }
     case 'table':
       if (block.children) {
         const firstChild = block.children[0]
         const remainingChildren = block.children.slice(1)
-        const header = `| ${firstChild.table_row.cells
-          .map((x: any) => x.map((y: any) => formatPlainText(y)).join(''))
-          .join(' | ')} |\n`
+        const header = `| ${join(
+          firstChild.table_row.cells.map((x: any) =>
+            join(
+              x.map((y: any) => formatPlainText(y)),
+              ''
+            )
+          ),
+          ' | '
+        )} |\n`
         const divider = `|${repeat('---|', data.table_width)}\n`
-        const rows = remainingChildren
-          .map((row: any) => {
-            return `| ${row.table_row.cells
-              .map((x: any) => x.map((y: any) => formatPlainText(y)).join(''))
-              .join(' | ')} |`
-          })
-          .join('\n')
+        const rows = join(
+          remainingChildren.map((row: any) => {
+            return `| ${join(
+              row.table_row.cells.map((x: any) =>
+                join(
+                  x.map((y: any) => formatPlainText(y)),
+                  ''
+                )
+              ),
+              ' | '
+            )} |`
+          }),
+          '\n'
+        )
         return `${header}${divider}${rows}${n}`
       }
       return `Table as CSV\n`
     case 'table_row':
-      return `| ${data.cells
-        .map((x: any) => x.map((y: any) => formatPlainText(y)).join(''))
-        .join(' | ')} |\n`
+      return `| ${join(
+        data.cells.map((x: any) =>
+          join(
+            x.map((y: any) => formatPlainText(y)),
+            ''
+          )
+        ),
+        ' | '
+      )} |\n`
     case 'to_do':
-      childData = map(block.children, child =>
-        convertNotionToMd(child, level + 1, linkChildPages)
-      ).join(repeat('\t', level))
+      childData = join(
+        map(block.children, child =>
+          convertNotionToMd(child, level + 1, linkChildPages)
+        ),
+        repeat('\t', level)
+      )
       return (
-        `- [${data.checked ? 'X' : ' '}] ${plainText.join('')}\n` +
+        `- [${data.checked ? 'X' : ' '}] ${join(plainText, '')}\n` +
         (childData ? `${repeat('\t', level)}${childData}` : '')
       )
     default:
-      childData = map(block.children, child =>
-        convertNotionToMd(child, level, linkChildPages)
-      ).join('')
-      return plainText.join('') + n + childData
+      childData = join(
+        map(block.children, child =>
+          convertNotionToMd(child, level, linkChildPages)
+        ),
+        ''
+      )
+      return join(plainText, '') + n + childData
   }
 }
 
@@ -217,9 +251,12 @@ const convertNotionToMarkdown = function (blocks: any, linkChildPages = false) {
       return resolveChildren(block, arrayBlocks)
     })
   )
-  return blocksWithChildren
-    .map((block: any) => convertNotionToMd(block, 1, linkChildPages))
-    .join('')
+  return join(
+    blocksWithChildren.map((block: any) =>
+      convertNotionToMd(block, 1, linkChildPages)
+    ),
+    ''
+  )
 }
 
 export default convertNotionToMarkdown

@@ -1,6 +1,6 @@
 import { Focus } from 'jsonata'
 import pRetry, { AbortError } from 'p-retry'
-import { includes, trim } from 'lodash-es'
+import { includes, split, trim } from 'lodash-es'
 
 type PdfOptions = {
   title?: string
@@ -27,8 +27,8 @@ function getFilenameFromHeaders(resp: Response, fallback?: string): string {
   const cd = resp.headers.get('content-disposition') || ''
   const matchStar = cd.match(/filename\*=([^;]+)/i)
   if (matchStar) {
-    const value = matchStar[1].trim()
-    const parts = value.split("''")
+    const value = trim(matchStar[1])
+    const parts = split(value, "''")
     if (parts.length === 2) {
       try {
         return decodeURIComponent(parts[1])
