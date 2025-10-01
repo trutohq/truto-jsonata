@@ -1532,6 +1532,44 @@ Output:
 
 </details>
 
+<details>
+<summary>convertMdToPdf(markdown, options = { title: '', pageSize: 'a4', embedImages: false, pageMargins: [40, 60, 40, 60], defaultStyle: { fontSize: 12, lineHeight: 1.4 } })</summary>
+
+Converts Markdown text to a PDF `Blob` using jsPDF.
+
+**Example:**
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata'
+
+const markdown = `# Title\n\nThis is a paragraph.`
+const expression = trutoJsonata("$convertMdToPdf(markdown)")
+expression.evaluate({ markdown }).then(blob => {
+  console.log(blob) // Blob { type: 'application/pdf' }
+})
+```
+
+**Options:**
+- `title`: Optional document title
+- `pageSize`: jsPDF page size (e.g., `'a4'`, `'LETTER'`)
+- `embedImages`: Reserved for future use
+- `pageMargins`: `[left, top, right, bottom]` in points
+- `defaultStyle`: `{ fontSize: number, lineHeight: number }`
+
+If your transport requires a JSON-serializable value, convert the PDF Blob to a data URI string and decode it later:
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata'
+
+const markdown = `# Report\nGenerated content`
+const expr = trutoJsonata("$getDataUri($convertMdToPdf(markdown), 'application/pdf')")
+expr.evaluate({ markdown }).then(dataUri => {
+  // dataUri starts with 'data:application/pdf;base64,'
+  console.log(typeof dataUri, dataUri.startsWith('data:application/pdf;base64,'))
+})
+```
+</details>
+
 ---  
 
 ### Array and Object Utilities (Lodash Enhancements)
