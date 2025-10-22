@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://truto.one" target="_blank">
+  <a href="https://truto.one" target="_blank" rel="noopener noreferrer">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://frontsite-logos.truto.one/truto.svg">
       <source media="(prefers-color-scheme: light)" srcset="https://frontsite-logos.truto.one/truto.svg">
@@ -14,8 +14,8 @@
 </p>
 
 <p align="center">
-  <a href="https://truto.one">Website</a> •
-  <a href="https://docs.truto.one">Docs</a> 
+  <a href="https://truto.one" target="_blank" rel="noopener noreferrer">Website</a> •
+  <a href="https://docs.truto.one "target="_blank" rel="noopener noreferrer">Docs</a> 
 </p>
 
 ---
