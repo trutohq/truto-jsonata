@@ -1,3 +1,25 @@
+<p align="center">
+  <a href="https://truto.one" target="_blank">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://frontsite-logos.truto.one/truto.svg">
+      <source media="(prefers-color-scheme: light)" srcset="https://frontsite-logos.truto.one/truto.svg">
+      <img alt="Truto Unified API" src="https://frontsite-logos.truto.one/truto.svg" width="240">
+    </picture>
+  </a>
+</p>
+
+<p align="center">
+  <strong>Unified API for Everything</strong><br>
+  The integration platform that gives devs full control and sales the integrations they need to close deals now.
+</p>
+
+<p align="center">
+  <a href="https://truto.one">Website</a> •
+  <a href="https://docs.truto.one">Docs</a> 
+</p>
+
+---
+
 
 # truto-jsonata
 
