@@ -2,7 +2,7 @@
   <a href="https://truto.one" target="_blank" rel="noopener noreferrer">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://frontsite-logos.truto.one/truto.svg">
-      <source media="(prefers-color-scheme: light)" srcset="https://frontsite-logos.truto.one/truto.svg">
+      <source media="(prefers-color-scheme: light)" srcset="https://files-public.truto.one/824a1120-c112-45e6-8ca2-787ffeee3a1c">
       <img alt="Truto Unified API" src="https://frontsite-logos.truto.one/truto.svg" width="240">
     </picture>
   </a>
