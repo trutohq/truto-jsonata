@@ -30,6 +30,7 @@ import convertMarkdownToGoogleDocs from './functions/convertMarkdownToGoogleDocs
 import convertMarkdownToHtml from './functions/convertMarkdownToHtml'
 import convertMarkdownToNotion from './functions/convertMarkdownToNotion'
 import convertMarkdownToSlack from './functions/convertMarkdownToSlack'
+import convertMdToPdf from './functions/convertMdToPdf'
 import convertNotionToMarkdown from './functions/convertNotionToMarkdown'
 import convertNotionToMd from './functions/convertNotionToMd'
 import convertQueryToSql from './functions/convertQueryToSql'
@@ -42,6 +43,7 @@ import getArrayBuffer from './functions/getArrayBuffer'
 import getDataUri from './functions/getDataUri'
 import getMimeType from './functions/getMimeType'
 import jsonParse from './functions/jsonParse'
+import jsonToCsv from './functions/jsonToCsv'
 import jsToXml from './functions/jsToXml'
 import mapValues from './functions/mapValues'
 import mostSimilar from './functions/mostSimilar'
@@ -59,7 +61,6 @@ import toNumber from './functions/toNumber'
 import uuid from './functions/uuid'
 import xmlToJs from './functions/xmlToJs'
 import zipSqlResponse from './functions/zipSqlResponse'
-import convertMdToPdf from './functions/convertMdToPdf'
 
 export default function registerJsonataExtensions(expression: Expression) {
   expression.registerFunction('dtFromIso', dtFromIso)
@@ -178,5 +179,6 @@ export default function registerJsonataExtensions(expression: Expression) {
   expression.registerFunction('flattenDepth', function (arr, depth) {
     return flattenDepth(castArray(arr), depth)
   })
+  expression.registerFunction('jsonToCsv', jsonToCsv)
   return expression
 }
