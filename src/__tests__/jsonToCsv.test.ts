@@ -150,15 +150,15 @@ describe('jsonToCsv', () => {
   })
 
   describe('error handling', () => {
-    it('should return empty string on parser error', () => {
+    it('should throw an error on parser error', () => {
       // Pass invalid options that might cause parser to throw
       const json = [{ name: 'John', age: 30 }]
       // Using an invalid field configuration that might cause issues
-      const result = jsonToCsv(json, {
-        fields: 'invalid' as unknown as Record<string, unknown>,
-      })
-      // The function should catch the error and return empty string
-      expect(result).toBe('')
+      expect(() => {
+        jsonToCsv(json, {
+          fields: 'invalid' as unknown as Record<string, unknown>,
+        })
+      }).toThrow()
     })
   })
 
