@@ -10,10 +10,6 @@ export default function jsonToCsv(
     return ''
   }
 
-  try {
-    const parser = new Parser(options)
-    return parser.parse(jsonArray)
-  } catch (error) {
-    return ''
-  }
+  const parser = new Parser(options)
+  return parser.parse(jsonArray)
 }
