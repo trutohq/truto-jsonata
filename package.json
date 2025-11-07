@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.0.45",
+  "version": "1.0.46",
   "description": "Truto extension of jsonata",
   "repository": "https://github.com/trutohq/truto-jsonata.git",
   "source": "src/index.ts",
@@ -51,6 +51,7 @@
     "vitest": "3.0.9"
   },
   "dependencies": {
+    "@json2csv/plainjs": "7.0.6",
     "@langchain/core": "0.3.37",
     "@langchain/textsplitters": "0.1.0",
     "@mixmark-io/domino": "2.2.0",

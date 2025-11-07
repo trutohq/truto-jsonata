@@ -830,6 +830,81 @@ expression.evaluate({}).then(result => { console.log(result); });
 </details>
 
 <details>
+<summary> jsonToCsv(json, options)</summary>
+
+Converts an array of JSON objects to CSV format. Uses the [@json2csv/plainjs](https://juanjodiaz.github.io/json2csv/#/parsers/parser) library for conversion.
+
+**Parameters:**
+
+- **json**: An array of objects (or a single object) to convert to CSV. Null and undefined values are automatically filtered out.
+- **options** _(Optional)_: Configuration options for the CSV parser. Supports all options from `@json2csv/plainjs`, including:
+  - **delimiter**: Custom delimiter (default: `','`)
+  - **header**: Include/exclude header row (default: `true`)
+  - **fields**: Array of field objects with `label` and `value` properties for custom headers
+  - See [@json2csv/plainjs documentation](https://juanjodiaz.github.io/json2csv/#/parsers/parser?id=parameters) for all available options
+
+**Example:**
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
+// Example 1: Basic conversion
+const data = [
+  { name: 'John', age: 30, city: 'New York' },
+  { name: 'Jane', age: 25, city: 'Los Angeles' }
+];
+const expression = trutoJsonata("$jsonToCsv(data, {})");
+expression.evaluate({ data }).then(result => { 
+  console.log(result); 
+  // Output: "name","age","city"
+  //         "John",30,"New York"
+  //         "Jane",25,"Los Angeles"
+});
+
+// Example 2: Custom delimiter
+const expression2 = trutoJsonata("$jsonToCsv(data, { delimiter: ';' })");
+expression2.evaluate({ data }).then(result => { 
+  console.log(result); 
+  // Output: "name";"age";"city"
+  //         "John";30;"New York"
+  //         "Jane";25;"Los Angeles"
+});
+
+// Example 3: Custom headers
+const options = {
+  fields: [
+    { label: 'Full Name', value: 'name' },
+    { label: 'Years', value: 'age' }
+  ]
+};
+const expression3 = trutoJsonata("$jsonToCsv(data, options)");
+expression3.evaluate({ data, options }).then(result => { 
+  console.log(result); 
+  // Output: "Full Name","Years"
+  //         "John",30
+  //         "Jane",25
+});
+
+// Example 4: Without header
+const expression4 = trutoJsonata("$jsonToCsv(data, { header: false })");
+expression4.evaluate({ data }).then(result => { 
+  console.log(result); 
+  // Output: "John",30,"New York"
+  //         "Jane",25,"Los Angeles"
+});
+
+// Example 5: Empty array returns empty string
+const emptyData = [];
+const expression5 = trutoJsonata("$jsonToCsv(emptyData, {})");
+expression5.evaluate({ emptyData }).then(result => { 
+  console.log(result); 
+  // Output: ""
+});
+```
+
+</details>
+
+<details>
 <summary> getMimeType(fileName)</summary>
 
 Returns the MIME type based on the file extension.
