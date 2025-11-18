@@ -35,6 +35,7 @@ import convertNotionToMarkdown from './functions/convertNotionToMarkdown'
 import convertNotionToMd from './functions/convertNotionToMd'
 import convertQueryToSql from './functions/convertQueryToSql'
 import digest from './functions/digest'
+import diceCoefficient from './functions/diceCoefficient'
 import dtFromFormat from './functions/dtFromFormat'
 import dtFromIso from './functions/dtFromIso'
 import firstNonEmpty from './functions/firstNonEmpty'
@@ -111,6 +112,7 @@ export default function registerJsonataExtensions(expression: Expression) {
   expression.registerFunction('uuid', uuid)
   expression.registerFunction('getArrayBuffer', getArrayBuffer)
   expression.registerFunction('mostSimilar', mostSimilar)
+  expression.registerFunction('diceCoefficient', diceCoefficient)
   expression.registerFunction('sortNodes', sortNodes)
   expression.registerFunction('blob', blob)
   expression.registerFunction('convertHtmlToMarkdown', convertHtmlToMarkdown)

@@ -2117,6 +2117,53 @@ expression.evaluate({ input, possibleValues, threshold }).then(result => { conso
 </details>
 
 <details>
+<summary>diceCoefficient(value1, value2)</summary>
+
+Calculates the Dice Coefficient similarity score between two strings. The Dice Coefficient measures the similarity of two strings based on their bigrams (pairs of adjacent characters). The function normalizes both strings (converts to lowercase and removes non-alphanumeric characters) before comparison.
+
+**Parameters:**
+
+- **value1**: The first string to compare.
+- **value2**: The second string to compare.
+
+**Returns:**
+
+A number between `0.0` (completely different) and `1.0` (identical), representing the similarity score.
+
+**Example Usage:**
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
+// Example 1: Identical strings return 1.0
+const expression1 = trutoJsonata("$diceCoefficient('hello', 'hello')");
+expression1.evaluate({}).then(result => { console.log(result); });
+// Output: 1.0
+
+// Example 2: Similar strings return a score between 0 and 1
+const expression2 = trutoJsonata("$diceCoefficient('apple', 'appl')");
+expression2.evaluate({}).then(result => { console.log(result); });
+// Output: 0.8 (or similar value depending on similarity)
+
+// Example 3: Case-insensitive comparison
+const expression3 = trutoJsonata("$diceCoefficient('Hello', 'HELLO')");
+expression3.evaluate({}).then(result => { console.log(result); });
+// Output: 1.0
+
+// Example 4: Non-alphanumeric characters are ignored
+const expression4 = trutoJsonata("$diceCoefficient('hello-world', 'hello world')");
+expression4.evaluate({}).then(result => { console.log(result); });
+// Output: 1.0
+
+// Example 5: Completely different strings return 0.0
+const expression5 = trutoJsonata("$diceCoefficient('hello', 'xyz')");
+expression5.evaluate({}).then(result => { console.log(result); });
+// Output: 0.0
+```
+
+</details>
+
+<details>
 <summary>sortNodes(array,   idKey = 'id',
   parentIdKey = 'parent_id',
   sequenceKey = 'sequence')</summary>
