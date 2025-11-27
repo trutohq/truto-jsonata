@@ -45,4 +45,28 @@ describe('digest', async () => {
       '2c74fd17edafd80e8447b0d46741ee243b7eb74dd2149a0ab1b9246fb30382f27e853d8585719e0e67cbda0daa8f51671064615d645ae27acb15bfb1447f459b'
     )
   })
+
+  it('should return the MD5 hash of a string in hex format', async () => {
+    const text = '42'
+    const hash = await digest(text, 'MD5', 'hex')
+    expect(hash).toBe('a1d0c6e83f027327d8461063f4ac58a6')
+  })
+
+  it('should return the MD5 hash of a string in base64 format', async () => {
+    const text = '42'
+    const hash = await digest(text, 'MD5', 'base64')
+    expect(hash).toBe('odDG6D8CcyfYRhBj9KxYpg==')
+  })
+
+  it('should return the MD5 hash of a string in base64-urlSafe format', async () => {
+    const text = '42'
+    const hash = await digest(text, 'MD5', 'base64-urlSafe')
+    expect(hash).toBe('odDG6D8CcyfYRhBj9KxYpg')
+  })
+
+  it('should return the MD5 hash (case insensitive) of a string in hex format', async () => {
+    const text = '42'
+    const hash = await digest(text, 'md5', 'hex')
+    expect(hash).toBe('a1d0c6e83f027327d8461063f4ac58a6')
+  })
 })
