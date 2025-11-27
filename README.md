@@ -999,7 +999,13 @@ Blob (13 bytes) {
 <details>
 <summary>digest(text, algorithm = 'SHA-256', stringType = 'hex')</summary>
 
-Generates a cryptographic hash of the input text using a specified hashing algorithm and output format.
+Generates a cryptographic hash of the input text using a specified hashing algorithm and output format. 
+
+**Supported Algorithms:**
+- SHA algorithms (SHA-1, SHA-256, SHA-384, SHA-512) use the [Web Crypto API's `crypto.subtle.digest()`](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest). See [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest#supported_algorithms) for the complete list of supported algorithms.
+- MD5 uses the `md5.js` library (since MD5 is not supported by Web Crypto API).
+
+**Output Formats:** 'hex', 'base64', and 'base64-urlSafe'.
 
 **Example:**
 
@@ -1037,7 +1043,39 @@ const expression3 = trutoJsonata("$digest(text, algorithm, stringType)");
 expression3.evaluate({ text: text3, algorithm: algorithm3, stringType: stringType3 }).then(result => {
   console.log(result);
   // Output: "Xh3mV+fAAG7ScGPjo4PElmR3obnFzGrxnbwGpEE4lI4="
+});
 
+// Example 4: MD5 Algorithm, Hex Output
+const text4 = '42';
+const algorithm4 = 'MD5';
+const stringType4 = 'hex';
+
+const expression4 = trutoJsonata("$digest(text, algorithm, stringType)");
+expression4.evaluate({ text: text4, algorithm: algorithm4, stringType: stringType4 }).then(result => {
+  console.log(result);
+  // Output: "a1d0c6e83f027327d8461063f4ac58a6"
+});
+
+// Example 5: MD5 Algorithm, Base64 Output
+const text5 = '42';
+const algorithm5 = 'MD5';
+const stringType5 = 'base64';
+
+const expression5 = trutoJsonata("$digest(text, algorithm, stringType)");
+expression5.evaluate({ text: text5, algorithm: algorithm5, stringType: stringType5 }).then(result => {
+  console.log(result);
+  // Output: "odDG6D8CcyfYRgYj9KxYpg=="
+});
+
+// Example 6: MD5 Algorithm, Base64 URL-Safe Output
+const text6 = '42';
+const algorithm6 = 'MD5';
+const stringType6 = 'base64-urlSafe';
+
+const expression6 = trutoJsonata("$digest(text, algorithm, stringType)");
+expression6.evaluate({ text: text6, algorithm: algorithm6, stringType: stringType6 }).then(result => {
+  console.log(result);
+  // Output: "odDG6D8CcyfYRgYj9KxYpg"
 });
 
 ```
