@@ -1,3 +1,5 @@
+/// <reference types="@cloudflare/workers-types" />
+
 import { Focus } from 'jsonata'
 import pRetry, { AbortError } from 'p-retry'
 
