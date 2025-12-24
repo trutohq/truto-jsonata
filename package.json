@@ -26,8 +26,12 @@
   "license": "MIT",
   "author": "Truto <eng@truto.one>",
   "volta": {
-    "node": "22.10.0",
+    "node": "22.12.0",
     "yarn": "1.22.19"
+  },
+  "resolutions": {
+    "brace-expansion": "npm:brace-expansion@1.1.12",
+    "vite": "npm:vite@6.4.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "4.20241018.0",
@@ -42,7 +46,7 @@
     "@types/turndown": "5.0.5",
     "@typescript-eslint/eslint-plugin": "5.46.1",
     "@typescript-eslint/parser": "5.46.1",
-    "eslint": "8.29.0",
+    "eslint": "9.39.2",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-prettier": "4.2.1",
     "parcel": "2.15.4",
@@ -52,7 +56,7 @@
   },
   "dependencies": {
     "@json2csv/plainjs": "7.0.6",
-    "@langchain/core": "0.3.37",
+    "@langchain/core": "1.1.8",
     "@langchain/textsplitters": "0.1.0",
     "@mixmark-io/domino": "2.2.0",
     "@truto/turndown-plugin-gfm": "1.0.2",
@@ -82,4 +86,3 @@
     "test": "vitest"
   }
 }
-
