@@ -15,7 +15,7 @@
 
 <p align="center">
   <a href="https://truto.one" target="_blank" rel="noopener noreferrer">Website</a> •
-  <a href="https://docs.truto.one "target="_blank" rel="noopener noreferrer">Docs</a> 
+  <a href="https://truto.one/docs" target="_blank" rel="noopener noreferrer">Docs</a> 
 </p>
 
 ---
