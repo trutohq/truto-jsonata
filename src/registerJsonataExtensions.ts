@@ -45,6 +45,7 @@ import getDataUri from './functions/getDataUri'
 import getMimeType from './functions/getMimeType'
 import jsonParse from './functions/jsonParse'
 import jsonToCsv from './functions/jsonToCsv'
+import jsonToParquet from './functions/jsonToParquet'
 import jsToXml from './functions/jsToXml'
 import mapValues from './functions/mapValues'
 import mostSimilar from './functions/mostSimilar'
@@ -182,5 +183,6 @@ export default function registerJsonataExtensions(expression: Expression) {
     return flattenDepth(castArray(arr), depth)
   })
   expression.registerFunction('jsonToCsv', jsonToCsv)
+  expression.registerFunction('jsonToParquet', jsonToParquet)
   return expression
 }
