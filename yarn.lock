@@ -2248,6 +2248,18 @@ hasown@^2.0.2:
   dependencies:
     function-bind "^1.1.2"
 
+hyparquet-writer@0.13.0:
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/hyparquet-writer/-/hyparquet-writer-0.13.0.tgz#d303ec8e65ab39c37e63413d7daff74a870bacd8"
+  integrity sha512-4Vl2RxwQPjMhCOZ2mCNK/WY3lJiiy+NlUugdsqBPTTy9sw3Uu7sJPU3UMiy7+aRAbY+y2K5dRJuNGTmQ8PdXFQ==
+  dependencies:
+    hyparquet "1.25.1"
+
+hyparquet@1.25.1:
+  version "1.25.1"
+  resolved "https://registry.yarnpkg.com/hyparquet/-/hyparquet-1.25.1.tgz#134b726c61c436fe4502fb06ca6cf9c3f60e89b6"
+  integrity sha512-CXcN/u6RdQqsK8IphUptpAEqY8IzgwzHY+MuXX+2wpoWTumfxPVr6JYbbywsNsiAl9aEbM5sRtxkwRBa22b49w==
+
 ignore@^5.2.0:
   version "5.3.2"
   resolved "https://registry.npmjs.org/ignore/-/ignore-5.3.2.tgz"

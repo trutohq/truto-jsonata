@@ -926,6 +926,8 @@ expression5.evaluate({ emptyData }).then(result => {
 
 </details>
 
+`$jsonToParquet(rows, options?)` returns an `ArrayBuffer` of Parquet bytes for S3/GCS uploads.
+
 <details>
 <summary> getMimeType(fileName)</summary>
 
