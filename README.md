@@ -926,7 +926,39 @@ expression5.evaluate({ emptyData }).then(result => {
 
 </details>
 
-`$jsonToParquet(rows, options?)` returns an `ArrayBuffer` of Parquet bytes for S3/GCS uploads.
+<details>
+<summary> jsonToParquet(rows, options?)</summary>
+
+Converts a single object or an array of objects to **Apache Parquet** and returns an **`ArrayBuffer`** (for example S3/GCS uploads or sync job V4 datastore `content`). Implemented with **[hyparquet-writer](https://www.npmjs.com/package/hyparquet-writer)** ([`parquetWriteBuffer`](https://github.com/hyparam/hyparquet-writer)) so it stays suitable for **Cloudflare Workers** and other environments without Node-only Parquet stacks.
+
+**Input**
+
+- **rows**: One `Record` or an array of records. `null` / `undefined` entries in an array are removed. If nothing is left, the result is an empty `ArrayBuffer`.
+- **options** _(optional)_: Only the fields below are passed through; anything else is ignored. Omitted keys use [hyparquet-writer defaults](https://github.com/hyparam/hyparquet-writer) (for example default compression).
+
+| Option | Type | Description |
+|--------|------|-------------|
+| **codec** | `'SNAPPY'` \| `'GZIP'` \| `'ZSTD'` \| `'UNCOMPRESSED'` | Column compression codec. Matches hyparquet-writer / Parquet codecs. When omitted, the writer’s default applies (typically `SNAPPY`). |
+| **rowGroupSize** | `number` \| `number[]` | Rows per row group. A single number fixes the size; an array can define a tiered layout (see hyparquet-writer `ParquetWriteOptions`). |
+
+Nested objects and arrays are stored with Parquet’s **JSON** logical type (UTF-8 JSON text). Primitive columns are inferred where possible (`BOOLEAN`, `INT32` / `INT64` / `DOUBLE`, `STRING`, timestamps for `Date`, etc.).
+
+**Example:**
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
+const rows = [{ id: '1', count: 42 }, { id: '2', count: 7 }];
+const options = { codec: 'UNCOMPRESSED', rowGroupSize: 1000 };
+const expression = trutoJsonata('$jsonToParquet(rows, options)');
+expression.evaluate({ rows, options }).then((buf) => {
+  // buf instanceof ArrayBuffer
+});
+```
+
+**References:** [hyparquet-writer on npm](https://www.npmjs.com/package/hyparquet-writer) · [hyparquet-writer on GitHub](https://github.com/hyparam/hyparquet-writer)
+
+</details>
 
 <details>
 <summary> getMimeType(fileName)</summary>
