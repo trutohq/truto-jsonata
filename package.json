@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.0.54",
+  "version": "2.0.0",
   "description": "Truto extension of jsonata",
   "repository": "https://github.com/trutohq/truto-jsonata.git",
   "source": "src/index.ts",
@@ -15,11 +15,34 @@
   "files": [
     "dist"
   ],
+  "sideEffects": false,
   "exports": {
     ".": {
-      "require": "./dist/cjs/index.cjs",
-      "import": "./dist/esm/index.js",
-      "types": "./dist/index.d.ts"
+      "browser": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/browser/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/cjs/index.cjs"
+      },
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/esm/index.js"
+      }
+    },
+    "./presets/*": {
+      "types": "./dist/presets/*.d.ts",
+      "browser": "./dist/browser/presets/*.js",
+      "require": "./dist/cjs/presets/*.cjs",
+      "import": "./dist/esm/presets/*.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "presets/*": [
+        "dist/presets/*.d.ts"
+      ]
     }
   },
   "type": "module",
@@ -83,7 +106,7 @@
   "scripts": {
     "dev": "parcel watch",
     "build": "rm -rf dist && bun run build.ts",
-    "types": "tsc --emitDeclarationOnly --outDir dist --declaration --noEmit false",
+    "types": "tsc -p tsconfig.build.json",
     "check": "tsc --noEmit",
     "prepublishOnly": "yarn test && yarn build && yarn types",
     "test": "vitest"
