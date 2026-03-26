@@ -110,6 +110,34 @@ registerJsonataExtensions(expression);
 // Now you can use custom functions in your expression
 ```
 
+### Tree-Shakeable Presets (v2.0+)
+
+For smaller bundles, import only the presets you need. Each preset is independent and can be composed:
+
+```javascript
+import jsonata from 'jsonata'
+import { registerCoreExtensions } from '@truto/truto-jsonata/presets/core'
+import { registerMarkdownExtensions } from '@truto/truto-jsonata/presets/markdown'
+
+const expression = jsonata('$convertMarkdownToHtml(md)')
+registerCoreExtensions(expression)
+registerMarkdownExtensions(expression)
+
+const result = await expression.evaluate({ md: '# Hello' })
+// Output: <h1>Hello</h1>
+```
+
+**Available Presets:**
+
+- **`core`** — Core utilities: base64 encoding/decoding, JSON parsing, UUID generation, array/object operations (groupBy, pick, omit, compact, etc.), currency conversion, hashing, URL parsing, and more.
+- **`datetime`** — Date parsing and formatting via Luxon: `$dtFromIso()`, `$dtFromFormat()`.
+- **`markdown`** — Markdown/Notion conversion: `$convertMarkdownToHtml()`, `$convertMarkdownToNotion()`, `$convertNotionToMarkdown()`, and more.
+- **`html`** — HTML conversion: `$convertHtmlToMarkdown()`.
+- **`data-formats`** — Data format transformations: XML↔JSON, CSV/Parquet export, SQL query builder (`$convertQueryToSql()`).
+- **`ai`** — AI/ML utilities: text splitting (`$recursiveCharacterTextSplitter()`), embeddings (`$generateEmbeddingsCohere()`).
+
+Each preset is bundled independently for tree-shaking — unused presets don't increase your bundle size in modern bundlers (Webpack 5+, Vite, esbuild).
+
 ## Custom Functions
 
 Below is a detailed list of all custom functions added to JSONata expressions, along with examples demonstrating how to use each one.
