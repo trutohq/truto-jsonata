@@ -129,20 +129,126 @@ const result = await expression.evaluate({ md: '# Hello' })
 
 **Available Presets:**
 
-- **`core`** — Core utilities: base64 encoding/decoding, JSON parsing, UUID generation, array/object operations (groupBy, pick, omit, compact, etc.), currency conversion, hashing, URL parsing, and more.
-- **`datetime`** — Date parsing and formatting via Luxon: `$dtFromIso()`, `$dtFromFormat()`.
-- **`markdown`** — Markdown/Notion conversion: `$convertMarkdownToHtml()`, `$convertMarkdownToNotion()`, `$convertNotionToMarkdown()`, and more.
-- **`html`** — HTML conversion: `$convertHtmlToMarkdown()`.
-- **`data-formats`** — Data format transformations: XML↔JSON, CSV/Parquet export, SQL query builder (`$convertQueryToSql()`).
-- **`ai`** — AI/ML utilities: text splitting (`$recursiveCharacterTextSplitter()`), embeddings (`$generateEmbeddingsCohere()`).
-
 Each preset is bundled independently for tree-shaking — unused presets don't increase your bundle size in modern bundlers (Webpack 5+, Vite, esbuild).
+
+<details>
+<summary><strong><code>@truto/truto-jsonata/presets/core</code></strong> — Core utilities, array/object operations, encoding, hashing</summary>
+
+| Function | Description |
+|---|---|
+| [`$base64encode()`](#base64encode) | Encode a string to Base64 |
+| [`$base64decode()`](#base64decode) | Decode a Base64 string |
+| [`$base64ToBlob()`](#base64toblob) | Convert Base64 to a Blob |
+| [`$blob()`](#blob) | Create a Blob from content |
+| `$bufferToString()` | Convert a buffer to a string |
+| [`$convertCurrencyToSubunit()`](#convertcurrencytosubunit) | Convert currency to subunit (e.g. dollars to cents) |
+| [`$convertCurrencyFromSubunit()`](#convertcurrencyfromsubunit) | Convert subunit back to main unit |
+| [`$diceCoefficient()`](#dicecoefficient) | Compute Dice coefficient between two strings |
+| [`$digest()`](#digest) | Generate a cryptographic hash digest |
+| [`$firstNonEmpty()`](#firstnonempty) | Return the first non-empty value |
+| [`$getArrayBuffer()`](#getarraybuffer) | Get an ArrayBuffer from a file/blob |
+| [`$getDataUri()`](#getdatauri) | Get a Data URI from a file/blob |
+| [`$getMimeType()`](#getmimetype) | Detect MIME type from a filename |
+| [`$jsonParse()`](#jsonparse) | Parse a JSON string |
+| [`$mapValues()`](#mapvalues) | Map values using a lookup |
+| [`$mostSimilar()`](#mostsimilar) | Find the most similar string from candidates |
+| [`$parseDocument()`](#parsedocument) | Parse a file into structured content |
+| `$parseQuery()` | Parse a query string into an object |
+| [`$parseUrl()`](#parseurl) | Parse a URL into its components |
+| [`$removeEmpty()`](#removeempty) | Remove empty values from an object |
+| [`$removeEmptyItems()`](#removeemptyitems) | Remove empty items from an array |
+| [`$sign()`](#sign) | Generate an HMAC signature |
+| [`$sortNodes()`](#sortnodes) | Topologically sort nodes by dependency |
+| `$stringifyQuery()` | Stringify an object into a query string |
+| `$teeStream()` | Clone a ReadableStream |
+| `$toNumber()` | Convert a value to a number |
+| [`$uuid()`](#uuid) | Generate a v4 UUID |
+| [`$zipSqlResponse()`](#zipsqlresponse) | Zip SQL columns and rows into objects |
+| [`$groupBy()`](#groupby) | Group array elements by key |
+| [`$keyBy()`](#keyby) | Index array elements by key |
+| [`$pick()`](#pick) | Pick specific keys from an object |
+| [`$omit()`](#omit) | Omit specific keys from an object |
+| [`$compact()`](#compact) | Remove falsy values from an array |
+| [`$join()`](#join) | Join array elements into a string |
+| [`$orderBy()`](#orderby) | Sort an array by fields and order |
+| [`$find()`](#find) | Find the first matching element |
+| [`$lofilter()`](#lofilter) | Filter array elements by predicate |
+| [`$values()`](#values) | Get all values of an object |
+| [`$chunk()`](#chunk) | Split an array into chunks |
+| [`$wrap()`](#wrap) | Wrap a value with delimiters |
+| [`$difference()`](#difference) | Return elements in first array not in second |
+| [`$flatten()`](#flatten) | Flatten an array one level |
+| [`$flattenDeep()`](#flattendeep) | Recursively flatten an array |
+| [`$flattenDepth()`](#flattendepth) | Flatten an array to a given depth |
+
+</details>
+
+<details>
+<summary><strong><code>@truto/truto-jsonata/presets/datetime</code></strong> — Date parsing and formatting via Luxon</summary>
+
+| Function | Description |
+|---|---|
+| [`$dtFromIso()`](#dtfromiso) | Parse an ISO date-time string to a Luxon DateTime |
+| [`$dtFromFormat()`](#dtfromformat) | Parse a date string with a custom format |
+
+</details>
+
+<details>
+<summary><strong><code>@truto/truto-jsonata/presets/markdown</code></strong> — Markdown and Notion conversion</summary>
+
+| Function | Description |
+|---|---|
+| `$convertMarkdownToAdf()` | Convert Markdown to Atlassian Document Format |
+| [`$convertMarkdownToGoogleDocs()`](#convertmarkdowntogoogledocs) | Convert Markdown to Google Docs format |
+| [`$convertMarkdownToHtml()`](#convertmarkdowntohtml) | Convert Markdown to HTML |
+| [`$convertMarkdownToNotion()`](#convertmarkdowntonotion) | Convert Markdown to Notion blocks |
+| [`$convertMarkdownToSlack()`](#convertmarkdowntoslack) | Convert Markdown to Slack mrkdwn |
+| [`$convertMdToPdf()`](#convertmdtopdf) | Convert Markdown to PDF |
+| [`$convertNotionToMarkdown()`](#convertnotiontomarkdown) | Convert Notion blocks to Markdown |
+| `$convertNotionToMd()` | Convert a single Notion block to Markdown |
+
+</details>
+
+<details>
+<summary><strong><code>@truto/truto-jsonata/presets/html</code></strong> — HTML conversion</summary>
+
+| Function | Description |
+|---|---|
+| [`$convertHtmlToMarkdown()`](#converthtmltomarkdown) | Convert HTML to Markdown |
+
+</details>
+
+<details>
+<summary><strong><code>@truto/truto-jsonata/presets/data-formats</code></strong> — Data format transformations</summary>
+
+| Function | Description |
+|---|---|
+| [`$xmlToJs()`](#xmltojs) | Parse XML to a JavaScript object |
+| [`$jsToXml()`](#jstoxml) | Convert a JavaScript object to XML |
+| [`$jsonToCsv()`](#jsontocsv) | Convert JSON array to CSV string |
+| [`$jsonToParquet()`](#jsontoparquet) | Convert JSON array to Parquet buffer |
+| [`$convertQueryToSql()`](#convertquerytosql) | Convert a query object to a SQL string |
+
+</details>
+
+<details>
+<summary><strong><code>@truto/truto-jsonata/presets/ai</code></strong> — AI/ML utilities</summary>
+
+| Function | Description |
+|---|---|
+| [`$generateEmbeddingsCohere()`](#generateembeddingscohere) | Generate embeddings via Cohere API |
+| [`$recursiveCharacterTextSplitter()`](#recursivecharactertextsplitter) | Split text into chunks for LLM processing |
+
+</details>
 
 ## Custom Functions
 
 Below is a detailed list of all custom functions added to JSONata expressions, along with examples demonstrating how to use each one.
 
 ### Data Transformation and Utility Functions
+
+<a name="dtfromiso"></a>
+
 
 <details>
 <summary>  dtFromIso(datetimeString)</summary>
@@ -161,6 +267,9 @@ expression.evaluate({}).then(result => { console.log(result)});
 
 </details>
 
+<a name="dtfromformat"></a>
+
+
 <details>
 <summary> dtFromFormat(datetimeString, format)</summary>
 
@@ -177,6 +286,9 @@ expression.evaluate({}).then(result => { console.log(result });
 ```
 
 </details>
+
+<a name="removeemptyitems"></a>
+
 
 <details>
 <summary> removeEmptyItems(array)</summary>
@@ -195,6 +307,9 @@ expression.evaluate({ data }).then(result => { console.log(result); });
 ```
 
 </details>
+
+<a name="removeempty"></a>
+
 
 <details>
 <summary> removeEmpty(object)</summary>
@@ -222,6 +337,9 @@ undefined
 
 </details>
 
+<a name="convertcurrencytosubunit"></a>
+
+
 <details>
 <summary>convertCurrencyToSubunit(amount, currencyCode)</summary>
 
@@ -239,6 +357,9 @@ expression.evaluate({}).then(result => { console.log(result); });
 
 </details>
 
+<a name="convertcurrencyfromsubunit"></a>
+
+
 <details>
 <summary>convertCurrencyFromSubunit(amountInSubunit, currencyCode)</summary>
 
@@ -255,6 +376,9 @@ expression.evaluate({}).then(result => { console.log(result); });
 ```
 
 </details>
+
+<a name="convertquerytosql"></a>
+
 
 <details>
 <summary>convertQueryToSql(query, keysToMap = [], mapping = {}, dataTypes = {}, customOperatorMapping = {}, options = {})</summary>
@@ -714,6 +838,9 @@ const options15 = {
 
 </details>
 
+<a name="mapvalues"></a>
+
+
 <details>
 <summary>mapValues(value, mapping, lowerCase = false, defaultValue = null)</summary>
 
@@ -810,6 +937,9 @@ mixedArrayExpression.evaluate({ mixedArray, mappingForMixedArray }).then(result 
 
 </details>
 
+<a name="zipsqlresponse"></a>
+
+
 <details>
 <summary>zipSqlResponse(columns, data, key)</summary>
 
@@ -845,6 +975,9 @@ Output:
 
 </details>
 
+<a name="firstnonempty"></a>
+
+
 <details>
 <summary> firstNonEmpty(...values)</summary>
 
@@ -862,6 +995,9 @@ expression.evaluate({}).then(result => { console.log(result); });
 
 </details>
 
+<a name="jsonparse"></a>
+
+
 <details>
 <summary> jsonParse(jsonString)</summary>
 
@@ -878,6 +1014,9 @@ expression.evaluate({}).then(result => { console.log(result); });
 ```
 
 </details>
+
+<a name="jsontocsv"></a>
+
 
 <details>
 <summary> jsonToCsv(json, options)</summary>
@@ -954,6 +1093,9 @@ expression5.evaluate({ emptyData }).then(result => {
 
 </details>
 
+<a name="jsontoparquet"></a>
+
+
 <details>
 <summary> jsonToParquet(rows, options?)</summary>
 
@@ -988,6 +1130,9 @@ expression.evaluate({ rows, options }).then((buf) => {
 
 </details>
 
+<a name="getmimetype"></a>
+
+
 <details>
 <summary> getMimeType(fileName)</summary>
 
@@ -1005,6 +1150,9 @@ expression.evaluate({}).then(result => { console.log(result); });
 
 </details>
 
+<a name="uuid"></a>
+
+
 <details>
 <summary>uuid()</summary>
 
@@ -1021,6 +1169,9 @@ expression.evaluate({ }).then(result => { console.log(result); });
 ```
 
 </details>
+
+<a name="getarraybuffer"></a>
+
 
 <details>
 <summary>getArrayBuffer(file)</summary>
@@ -1040,6 +1191,9 @@ expression.evaluate({ file}).then(result => { console.log(result); });
 
 </details>
 
+<a name="getdatauri"></a>
+
+
 <details>
 <summary>getDataUri(file)</summary>
 
@@ -1056,6 +1210,9 @@ expression.evaluate({ file}).then(result => { console.log(result); });
 ```
 
 </details>
+
+<a name="blob"></a>
+
 
 <details>
 <summary>blob(content, options)</summary>
@@ -1079,6 +1236,9 @@ Blob (13 bytes) {
 ```
 
 </details>
+
+<a name="digest"></a>
+
 
 <details>
 <summary>digest(text, algorithm = 'SHA-256', stringType = 'hex')</summary>
@@ -1166,6 +1326,9 @@ expression6.evaluate({ text: text6, algorithm: algorithm6, stringType: stringTyp
 
 </details>
 
+<a name="sign"></a>
+
+
 <details>
 <summary>sign(text, algorithm = 'SHA-256', secret, outputFormat = 'hex')</summary>
 
@@ -1204,6 +1367,9 @@ expression2.evaluate({ text: text2, algorithm: algorithm2, secret: secret2, outp
 ```
 
 </details>
+
+<a name="xmltojs"></a>
+
 
 <details>
 <summary>xmlToJs(xml, options = { compact: true, spaces: 4 } )</summary>
@@ -1337,6 +1503,9 @@ expression3.evaluate({ xmlData: xmlData3, options: options3 }).then(result => {
 
 </details>
 
+<a name="jstoxml"></a>
+
+
 <details>
 <summary>jsToXml(json, options = { compact: true, spaces: 4 } )</summary>
 
@@ -1455,6 +1624,9 @@ expression3.evaluate({ jsonData: jsonData3, options: options3 }).then(result => 
 
 </details>
 
+<a name="parsedocument"></a>
+
+
 <details>
 <summary>parseDocument(file)</summary>
 
@@ -1475,6 +1647,9 @@ expression.evaluate({ file}).then(result => { console.log(result); });
 </details>
 
 ### Markdown and Text Conversion
+
+<a name="convertmarkdowntogoogledocs"></a>
+
 
 <details>
 <summary>convertMarkdownToGoogleDocs(text)</summary>
@@ -1523,6 +1698,9 @@ expression.evaluate({ markdownText}).then(result => { console.log(result); });
 
 </details>
 
+<a name="convertmarkdowntonotion"></a>
+
+
 <details>
 <summary>convertMarkdownToNotion(markdown)</summary>
 
@@ -1562,6 +1740,9 @@ Output:
 ```
 
 </details>
+
+<a name="convertmarkdowntoslack"></a>
+
 
 <details>
 <summary>convertMarkdownToSlack(markdown)</summary>
@@ -1612,6 +1793,9 @@ Output:
 
 </details>
 
+<a name="convertnotiontomarkdown"></a>
+
+
 <details>
 <summary>convertNotionToMarkdown(blocks)</summary>
 
@@ -1651,6 +1835,9 @@ This is a paragraph.
 ```
 
 </details>
+
+<a name="converthtmltomarkdown"></a>
+
 
 <details>
 <summary>convertHtmlToMarkdown(htmlString)</summary>
@@ -1692,6 +1879,9 @@ This is a **bold** statement.
 
 </details>
 
+<a name="convertmarkdowntohtml"></a>
+
+
 <details>
 <summary>convertMarkdownToHtml(markdownString)</summary>
 
@@ -1728,6 +1918,9 @@ Output:
 ```
 
 </details>
+
+<a name="convertmdtopdf"></a>
+
 
 <details>
 <summary>convertMdToPdf(markdown, options = { title: '', pageSize: 'a4', embedImages: false, pageMargins: [40, 60, 40, 60], defaultStyle: { fontSize: 12, lineHeight: 1.4 } })</summary>
@@ -1773,6 +1966,9 @@ expr.evaluate({ markdown }).then(dataUri => {
 
 These functions are inspired by [Lodash](https://lodash.com/) and adapted for use within JSONata expressions.
 
+<a name="difference"></a>
+
+
 <details>
 <summary>difference(array1, array2)</summary>
 
@@ -1791,6 +1987,9 @@ expression.evaluate({}).then(result => { console.log(result); });
 ```
 
 </details>
+
+<a name="groupby"></a>
+
 
 <details>
 <summary>groupBy(array, iteratee)</summary>
@@ -1833,6 +2032,9 @@ Output:
 
 </details>
 
+<a name="keyby"></a>
+
+
 <details>
 <summary>keyBy(array, iteratee)</summary>
 
@@ -1855,6 +2057,9 @@ expression.evaluate({ data }).then(result => { console.log(result); });
 
 </details>
 
+<a name="pick"></a>
+
+
 <details>
 <summary>pick(object, keys)</summary>
 
@@ -1872,6 +2077,9 @@ expression.evaluate({ data }).then(result => { console.log(result); });
 ```
 
 </details>
+
+<a name="omit"></a>
+
 
 <details>
 <summary>omit(object, keys)</summary>
@@ -1891,6 +2099,9 @@ expression.evaluate({ data }).then(result => { console.log(result); });
 
 </details>
 
+<a name="compact"></a>
+
+
 <details>
 <summary>compact(array)</summary>
 
@@ -1909,6 +2120,9 @@ expression.evaluate({ data }).then(result => { console.log(result); });
 
 </details>
 
+<a name="join"></a>
+
+
 <details>
 <summary>join(array, separator)</summary>
 
@@ -1926,6 +2140,9 @@ expression.evaluate({ data }).then(result => { console.log(result); });
 ```
 
 </details>
+
+<a name="orderby"></a>
+
 
 <details>
 <summary>orderBy(collection, iteratees, orders)</summary>
@@ -1959,6 +2176,9 @@ expression.evaluate({ data }).then(result => { console.log(result); });
 
 </details>
 
+<a name="find"></a>
+
+
 <details>
 <summary>find(collection, attr)</summary>
 
@@ -1990,6 +2210,9 @@ otherExpression.evaluate({ otherData }).then(result => { console.log(result); })
 ```
 
 </details>
+
+<a name="lofilter"></a>
+
 
 <details>
 <summary>lofilter(collection, predicate)</summary>
@@ -2028,6 +2251,9 @@ Output:
 
 </details>
 
+<a name="values"></a>
+
+
 <details>
 <summary>values(object)</summary>
 
@@ -2046,6 +2272,9 @@ expression.evaluate({ data }).then(result => { console.log(result); });
 
 </details>
 
+<a name="flatten"></a>
+
+
 <details>
 <summary>flatten(array)</summary>
 
@@ -2063,6 +2292,9 @@ expression.evaluate({}).then(result => { console.log(result); });
 
 </details>
 
+<a name="flattendeep"></a>
+
+
 <details>
 <summary>flattenDeep(array)</summary>
 
@@ -2079,6 +2311,9 @@ expression.evaluate({}).then(result => { console.log(result); });
 ```
 
 </details>
+
+<a name="flattendepth"></a>
+
 
 <details>
 <summary>flattenDepth(array, depth)</summary>
@@ -2101,6 +2336,9 @@ expression.evaluate({}).then(result => { console.log(result); });
 ---
   
 ### Parsing and URL Functions
+
+<a name="parseurl"></a>
+
 
 <details>
 <summary>parseUrl(urlString)</summary>
@@ -2144,6 +2382,9 @@ URL {
 
 ### AI Stuff
 
+<a name="generateembeddingscohere"></a>
+
+
 <details>
 <summary>generateEmbeddingsCohere(body, api_key)</summary>
 
@@ -2178,6 +2419,9 @@ expression.evaluate({ body, api_key }).then(result => { console.log(result); });
 
 </details>
 
+<a name="recursivecharactertextsplitter"></a>
+
+
 <details>
 <summary>recursiveCharacterTextSplitter(text, options)</summary>
 
@@ -2210,6 +2454,9 @@ expression.evaluate(text).then(result => { console.log(result); });
 
 ### Miscellaneous
 
+<a name="mostsimilar"></a>
+
+
 <details>
 <summary>mostSimilar(value, possibleValues, threshold = 0.8)</summary>
 
@@ -2237,6 +2484,9 @@ expression.evaluate({ input, possibleValues, threshold }).then(result => { conso
 ```
 
 </details>
+
+<a name="dicecoefficient"></a>
+
 
 <details>
 <summary>diceCoefficient(value1, value2)</summary>
@@ -2285,6 +2535,7 @@ expression5.evaluate({}).then(result => { console.log(result); });
 
 </details>
 
+<a name="sortnodes"></a>
 <details>
 <summary>sortNodes(array,   idKey = 'id',
   parentIdKey = 'parent_id',
@@ -2364,6 +2615,9 @@ expression2.evaluate({ nodes: nodes2, ...options2 }).then(result => {
 
 </details>
 
+<a name="wrap"></a>
+
+
 <details>
 <summary>wrap(value, wrapper, endWrapper)</summary>
 
@@ -2380,6 +2634,9 @@ expression.evaluate({}).then(result => { console.log(result); });
 ```
 
 </details>
+
+<a name="base64encode"></a>
+
 
 <details>
 <summary>base64encode(input, urlSafe = false)</summary>
@@ -2398,6 +2655,9 @@ expression.evaluate({}).then(result => { console.log(result); });
 
 </details>
 
+<a name="base64decode"></a>
+
+
 <details>
 <summary>base64decode(base64String, urlSafe = false)</summary>
 
@@ -2414,6 +2674,9 @@ expression.evaluate({}).then(result => { console.log(result); });
 ```
 
 </details>
+
+<a name="base64toblob"></a>
+
 
 <details>
 <summary>base64ToBlob(base64String, options = {})</summary>
@@ -2463,6 +2726,11 @@ expression3.evaluate({}).then(result => {
 ```
 
 </details>
+
+
+
+<a name="chunk"></a>
+
 
 
 
