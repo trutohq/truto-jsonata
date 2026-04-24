@@ -99,7 +99,7 @@
     "p-map": "7.0.3",
     "p-retry": "6.2.1",
     "qs": "6.15.0",
-    "turndown": "7.2.0",
+    "turndown": "7.2.2",
     "vitest-fetch-mock": "0.3.0",
     "xml-js": "1.6.11"
   },
