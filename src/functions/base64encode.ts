@@ -8,12 +8,12 @@ function base64encode(input: string | ArrayBufferLike | Uint8Array, urlSafe = fa
   } else if (input instanceof Uint8Array) {
     bytes = input
   } else {
-    bytes = new TextEncoder().encode(input)
+    bytes = new TextEncoder().encode(input as string)
   }
   const CHUNK = 8192
   let binary = ''
   for (let i = 0; i < bytes.length; i += CHUNK) {
-    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK))
+    binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + CHUNK)))
   }
   let base64 = btoa(binary)
   if (urlSafe) {
