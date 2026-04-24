@@ -37,4 +37,15 @@ describe('encodebase64', () => {
     expect(result).toBe(expectedOutput)
   })
 
+  it('should encode an ArrayBuffer of binary bytes without corruption', () => {
+    // JPEG magic bytes — non-UTF-8, would be corrupted by the TextEncoder path
+    const jpegMagic = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0])
+    expect(base64encode(jpegMagic.buffer)).toBe('/9j/4A==')
+  })
+
+  it('should encode a Uint8Array of binary bytes without corruption', () => {
+    const jpegMagic = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0])
+    expect(base64encode(jpegMagic)).toBe('/9j/4A==')
+  })
+
 })
