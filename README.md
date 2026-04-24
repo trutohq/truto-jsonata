@@ -136,7 +136,7 @@ Each preset is bundled independently for tree-shaking — unused presets don't i
 
 | Function | Description |
 |---|---|
-| [`$base64encode()`](#base64encode) | Encode a string to Base64 |
+| [`$base64encode()`](#base64encode) | Encode a string, ArrayBuffer, or Uint8Array to Base64 |
 | [`$base64decode()`](#base64decode) | Decode a Base64 string |
 | [`$base64ToBlob()`](#base64toblob) | Convert Base64 to a Blob |
 | [`$blob()`](#blob) | Create a Blob from content |

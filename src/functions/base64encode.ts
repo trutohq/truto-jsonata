@@ -1,9 +1,19 @@
-function base64encode(input: string, urlSafe = false): string {
+function base64encode(input: string | ArrayBufferLike | Uint8Array, urlSafe = false): string {
+  let bytes: Uint8Array
+  if (
+    input instanceof ArrayBuffer ||
+    (typeof SharedArrayBuffer !== 'undefined' && input instanceof SharedArrayBuffer)
+  ) {
+    bytes = new Uint8Array(input)
+  } else if (input instanceof Uint8Array) {
+    bytes = input
+  } else {
+    bytes = new TextEncoder().encode(input)
+  }
+  const CHUNK = 8192
   let binary = ''
-  const bytes = new TextEncoder().encode(input)
-  const len = bytes.length
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i])
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK))
   }
   let base64 = btoa(binary)
   if (urlSafe) {
