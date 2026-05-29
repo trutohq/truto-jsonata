@@ -1,8 +1,8 @@
-import { isFunction } from 'lodash-es'
+import { unwrapBlob } from './unwrapNative'
 
-async function getArrayBuffer(file?: Blob) {
-  return file && isFunction(file.arrayBuffer)
-    ? await file.arrayBuffer()
-    : undefined
+async function getArrayBuffer(file?: unknown) {
+  const blob = unwrapBlob(file)
+  return blob ? await blob.arrayBuffer() : undefined
 }
+
 export default getArrayBuffer

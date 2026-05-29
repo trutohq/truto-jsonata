@@ -1,45 +1,27 @@
 # JSONata 2.2 — custom function return types
 
-JSONata 2.2 blocks access to prototype properties/methods on values returned from expressions. Custom functions must return **plain objects with own properties** when mappings chain field access (e.g. `$fn().field`, `$fn().method()`).
+JSONata 2.2 blocks access to prototype properties/methods on values returned from expressions. Every custom function that returns a native object (`URL`, Luxon `DateTime`, `Blob`, `ArrayBuffer`, `ReadableStream`, `DepGraph`, …) uses a **jsonata-safe wrapper** with own properties and bound methods.
 
-## Fixed (used in unified mappings)
+Internal consumers (`$getArrayBuffer`, `$getDataUri`, `$bufferToString`, `$parseDocument`) call `unwrapNative()` so wrapped values still work when passed between functions in the same expression.
 
-| Function | Was | Now |
-|----------|-----|-----|
-| `$dtFromIso` / `$dtFromFormat` | Luxon `DateTime` | `toJsonataDateTime()` plain object + bound Luxon methods |
-| `$parseUrl` | `URL` | `toJsonataUrl()` with `origin`, `pathname`, `searchParams.get`, etc. |
+## Wrapped functions
 
-## Safe without wrapping (production usage)
+| Function | Wrapper | JSONata-accessible surface |
+|----------|---------|---------------------------|
+| `$dtFromIso` / `$dtFromFormat` | `toJsonataDateTime` | `year`, `month`, …, `toISO`, `toFormat`, `plus`, `minus`, `startOf`, `endOf`, `diff`, … |
+| `$parseUrl` | `toJsonataUrl` | `origin`, `pathname`, `search`, `searchParams.get`, … |
+| `$blob` / `$base64ToBlob` / `$convertMdToPdf` | `toJsonataBlob` | `size`, `type`, `name`, `arrayBuffer`, `text`, `slice`, `stream` |
+| `$jsonToParquet` | `toJsonataArrayBuffer` | `byteLength`, `slice` |
+| `$teeStream` | `toJsonataReadableStream` (×2) | `locked`, `cancel`, `tee`, `getReader` |
+| `$dependencyGraph` | `toJsonataDepGraph` | `overallOrder`, `dependenciesOf`, `dependantsOf`, `hasNode`, `getNodeData`, `clone` |
 
-Returned as opaque values or plain JSON; **no** chained JSONata access in unified models / sync jobs:
+## Plain JSON / primitives (no wrapper)
 
-| Function | Returns | Notes |
-|----------|---------|--------|
-| `$blob` / `$base64ToBlob` | `Blob` | Passed to HTTP body or nested into `$getDataUri` / `$getArrayBuffer` in JS |
-| `$jsonToParquet` | `ArrayBuffer` | Assigned to `parquet` field only |
-| `$getArrayBuffer` | `ArrayBuffer` | Request body mapping |
-| `$convertMdToPdf` | `Blob` | Only nested in `$getDataUri(...)` |
-| `$parseDocument` | `string` | API content |
-| `$parseQuery` | plain object | `qs.parse` — own keys work in JSONata |
-| `$xmlToJs` / `$jsonParse` | plain object | |
-| `$stringifyQuery` | `string` | |
-| `$sortNodes` | plain array of objects | |
-| Markdown/HTML/Notion converters | `string` or plain arrays | |
-| `$generateEmbeddingsCohere` | plain JSON | |
-| `$digest` / `$sign` / `$uuid` / … | primitives | |
+`$parseQuery`, `$xmlToJs`, `$jsonParse`, `$sortNodes`, converters that return strings, `$digest`, `$sign`, `$uuid`, lodash helpers, etc.
 
-## Not used in unified mappings (wrap if chaining is added later)
-
-| Function | Returns | Risk if chained in JSONata |
-|----------|---------|------------------------------|
-| `$dependencyGraph` | `DepGraph` | Method calls throw `T1006` |
-| `$teeStream` | `[ReadableStream, ReadableStream]` | Indexing may work; stream methods would not |
-
-## Regenerating compatibility tests
+## Tests
 
 ```bash
 yarn vitest run src/__tests__/instanceReturnAudit.test.ts
 yarn vitest run src/__tests__/jsonata22Prototype.compat.test.ts
-# Optional: local truto checkout scan
-yarn vitest run src/__tests__/unifiedMappingDatetime.scan.test.ts
 ```

@@ -1,9 +1,11 @@
+import { NATIVE_URL } from './unwrapNative'
+
 export type JsonataUrl = ReturnType<typeof toJsonataUrl>
 
 /** Plain object with own properties so JSONata 2.2+ can access URL fields and searchParams. */
 export function toJsonataUrl(url: URL) {
   const params = url.searchParams
-  return {
+  const value = {
     href: url.href,
     origin: url.origin,
     protocol: url.protocol,
@@ -21,6 +23,8 @@ export function toJsonataUrl(url: URL) {
       getAll: (name: string) => params.getAll(name),
     },
   }
+  Object.defineProperty(value, NATIVE_URL, { value: url, enumerable: false })
+  return value
 }
 
 function parseUrl(url: string) {

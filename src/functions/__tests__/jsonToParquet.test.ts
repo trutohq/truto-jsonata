@@ -1,10 +1,15 @@
 import { parquetReadObjects } from 'hyparquet'
 import { describe, expect, it } from 'vitest'
 import jsonToParquet from '../jsonToParquet'
+import { unwrapArrayBuffer } from '../unwrapNative'
 
-function expectParquetMagic(buf: ArrayBuffer) {
-  expect(buf.byteLength).toBeGreaterThan(8)
-  const u8 = new Uint8Array(buf)
+function expectParquetMagic(buf: unknown) {
+  const native = unwrapArrayBuffer(buf)
+  if (!native) {
+    throw new Error('expected ArrayBuffer')
+  }
+  expect(native.byteLength).toBeGreaterThan(8)
+  const u8 = new Uint8Array(native)
   const head = String.fromCharCode(...u8.subarray(0, 4))
   const tail = String.fromCharCode(...u8.subarray(u8.length - 4))
   expect(head).toBe('PAR1')
@@ -18,6 +23,7 @@ describe('jsonToParquet', () => {
     it('returns empty ArrayBuffer for empty array', () => {
       const buf = jsonToParquet([], baseOpts)
       expect(buf.byteLength).toBe(0)
+      expect(unwrapArrayBuffer(buf)?.byteLength).toBe(0)
     })
 
     it('returns empty ArrayBuffer for null', () => {
@@ -66,7 +72,7 @@ describe('jsonToParquet', () => {
       )
       expectParquetMagic(buf)
       const rows = await parquetReadObjects({
-        file: buf,
+        file: unwrapArrayBuffer(buf)!,
         rowFormat: 'object',
       })
       expect(rows).toHaveLength(2)
@@ -89,7 +95,7 @@ describe('jsonToParquet', () => {
       const buf = jsonToParquet([{ meta: payload }], baseOpts)
       expectParquetMagic(buf)
       const rows = await parquetReadObjects({
-        file: buf,
+        file: unwrapArrayBuffer(buf)!,
         rowFormat: 'object',
       })
       expect(rows).toHaveLength(1)
@@ -100,7 +106,7 @@ describe('jsonToParquet', () => {
     it('stores arrays as JSON text readable with JSON.parse', async () => {
       const buf = jsonToParquet([{ tags: ['x', 'y'] }], baseOpts)
       const rows = await parquetReadObjects({
-        file: buf,
+        file: unwrapArrayBuffer(buf)!,
         rowFormat: 'object',
       })
       expect(typeof rows[0].tags).toBe('string')

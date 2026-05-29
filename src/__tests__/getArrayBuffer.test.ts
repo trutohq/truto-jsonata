@@ -1,5 +1,6 @@
 import { File } from 'buffer'
 import getArrayBuffer from '../functions/getArrayBuffer'
+import { toJsonataBlob } from '../functions/toJsonataBlob'
 import { describe, expect, it } from 'vitest'
 
 describe('getArrayBuffer', () => {
@@ -22,6 +23,13 @@ describe('getArrayBuffer', () => {
       expect(arrayBuffer.byteLength).toBe(file.size)
     }
     expect(arrayBuffer).toBeInstanceOf(ArrayBuffer)
+  })
+
+  it('unwraps jsonata-safe blobs from $blob', async () => {
+    const wrapped = toJsonataBlob(new Blob(['Hello, world!'], { type: 'text/plain' }))
+    const arrayBuffer = await getArrayBuffer(wrapped)
+    expect(arrayBuffer).toBeInstanceOf(ArrayBuffer)
+    expect(arrayBuffer?.byteLength).toBe(13)
   })
 
   it('should return undefined when file is of not blob type', async () => {

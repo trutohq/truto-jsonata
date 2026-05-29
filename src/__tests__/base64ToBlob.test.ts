@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import base64ToBlob from '../functions/base64ToBlob'
+import { unwrapBlob } from '../functions/unwrapNative'
 
 describe('base64ToBlob', () => {
   it('should convert a valid base64 string to a Blob', () => {
     const base64String = 'SGVsbG8gd29ybGQ=' // "Hello world"
     const result = base64ToBlob(base64String)
 
-    expect(result).toBeInstanceOf(Blob)
+    expect(unwrapBlob(result)).toBeInstanceOf(Blob)
     expect(result.type).toBe('application/octet-stream')
     expect(result.size).toBe(11) // "Hello world" is 11 bytes
   })
@@ -14,7 +15,7 @@ describe('base64ToBlob', () => {
   it('should handle empty base64 string', () => {
     const result = base64ToBlob('')
 
-    expect(result).toBeInstanceOf(Blob)
+    expect(unwrapBlob(result)).toBeInstanceOf(Blob)
     expect(result.type).toBe('application/octet-stream')
     expect(result.size).toBe(0)
   })
@@ -23,16 +24,16 @@ describe('base64ToBlob', () => {
     const result1 = base64ToBlob(null as any)
     const result2 = base64ToBlob(undefined as any)
 
-    expect(result1).toBeInstanceOf(Blob)
+    expect(unwrapBlob(result1)).toBeInstanceOf(Blob)
     expect(result1.size).toBe(0)
-    expect(result2).toBeInstanceOf(Blob)
+    expect(unwrapBlob(result2)).toBeInstanceOf(Blob)
     expect(result2.size).toBe(0)
   })
 
   it('should handle non-string input', () => {
     const result = base64ToBlob(123 as any)
 
-    expect(result).toBeInstanceOf(Blob)
+    expect(unwrapBlob(result)).toBeInstanceOf(Blob)
     expect(result.size).toBe(0)
   })
 
@@ -40,7 +41,7 @@ describe('base64ToBlob', () => {
     const base64String = 'SGVsbG8gd29ybGQ='
     const result = base64ToBlob(base64String, { mimeType: 'text/plain' })
 
-    expect(result).toBeInstanceOf(Blob)
+    expect(unwrapBlob(result)).toBeInstanceOf(Blob)
     expect(result.type).toBe('text/plain')
     expect(result.size).toBe(11)
   })
@@ -49,7 +50,7 @@ describe('base64ToBlob', () => {
     const dataUri = 'data:text/plain;base64,SGVsbG8gd29ybGQ='
     const result = base64ToBlob(dataUri)
 
-    expect(result).toBeInstanceOf(Blob)
+    expect(unwrapBlob(result)).toBeInstanceOf(Blob)
     expect(result.type).toBe('text/plain')
     expect(result.size).toBe(11)
   })
@@ -60,7 +61,7 @@ describe('base64ToBlob', () => {
       'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
     const result = base64ToBlob(dataUri)
 
-    expect(result).toBeInstanceOf(Blob)
+    expect(unwrapBlob(result)).toBeInstanceOf(Blob)
     expect(result.type).toBe('image/png')
     expect(result.size).toBeGreaterThan(0)
   })
@@ -69,7 +70,7 @@ describe('base64ToBlob', () => {
     const urlSafeBase64 = 'aHR0cHM6Ly9leGFtcGxlLmNvbS8_cXVlcnk9YmFzZTY0' // URL-safe version
     const result = base64ToBlob(urlSafeBase64, { urlSafe: true })
 
-    expect(result).toBeInstanceOf(Blob)
+    expect(unwrapBlob(result)).toBeInstanceOf(Blob)
     expect(result.size).toBeGreaterThan(0)
   })
 
@@ -77,7 +78,7 @@ describe('base64ToBlob', () => {
     const base64WithoutPadding = 'SGVsbG8gd29ybGQ' // Missing '='
     const result = base64ToBlob(base64WithoutPadding)
 
-    expect(result).toBeInstanceOf(Blob)
+    expect(unwrapBlob(result)).toBeInstanceOf(Blob)
     expect(result.size).toBe(11)
   })
 
@@ -85,7 +86,7 @@ describe('base64ToBlob', () => {
     const base64WithWhitespace = '  SGVsbG8gd29ybGQ=  '
     const result = base64ToBlob(base64WithWhitespace)
 
-    expect(result).toBeInstanceOf(Blob)
+    expect(unwrapBlob(result)).toBeInstanceOf(Blob)
     expect(result.size).toBe(11)
   })
 
@@ -109,7 +110,7 @@ describe('base64ToBlob', () => {
       mimeType: 'application/pdf',
     })
 
-    expect(result).toBeInstanceOf(Blob)
+    expect(unwrapBlob(result)).toBeInstanceOf(Blob)
     expect(result.type).toBe('application/pdf')
     expect(result.size).toBe(8)
   })
@@ -118,7 +119,7 @@ describe('base64ToBlob', () => {
     const specialCharsBase64 = 'U3BlY2lhbCBjaGFyYWN0ZXJzOiAhQCMkJV4mKigpXys9' // "Special characters: !@#$%^&*()_+="
     const result = base64ToBlob(specialCharsBase64)
 
-    expect(result).toBeInstanceOf(Blob)
+    expect(unwrapBlob(result)).toBeInstanceOf(Blob)
     expect(result.size).toBe(33)
   })
 
@@ -128,7 +129,7 @@ describe('base64ToBlob', () => {
       mimeType: 'text/plain; charset=utf-8',
     })
 
-    expect(result).toBeInstanceOf(Blob)
+    expect(unwrapBlob(result)).toBeInstanceOf(Blob)
     expect(result.type).toBe('text/plain; charset=utf-8')
     expect(result.size).toBeGreaterThan(0)
   })
@@ -148,7 +149,7 @@ describe('base64ToBlob', () => {
     const longBase64 = btoa(repeatedText)
     const result = base64ToBlob(longBase64)
 
-    expect(result).toBeInstanceOf(Blob)
+    expect(unwrapBlob(result)).toBeInstanceOf(Blob)
     expect(result.size).toBe(repeatedText.length)
   })
 })

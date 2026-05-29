@@ -1,5 +1,6 @@
 import { DepGraph } from 'dependency-graph'
 import { get, keyBy } from 'lodash-es'
+import { toJsonataDepGraph } from './toJsonataDepGraph'
 
 const dependencyGraph = (array: unknown[], parentKey: string, key: string) => {
   const graph = new DepGraph()
@@ -17,7 +18,7 @@ const dependencyGraph = (array: unknown[], parentKey: string, key: string) => {
       graph.addDependency(value, parentValue)
     }
   })
-  return graph
+  return toJsonataDepGraph(graph)
 }
 
 export default dependencyGraph

@@ -1,8 +1,7 @@
 import { DateTime, Duration } from 'luxon'
+import { NATIVE_LUXON_DATE_TIME, unwrapNative } from './unwrapNative'
 
 export type JsonataDateTime = ReturnType<typeof toJsonataDateTime>
-
-const LUXON_DATE_TIME = Symbol('luxonDateTime')
 
 const DATETIME_METHODS = [
   'plus',
@@ -28,10 +27,7 @@ function wrapDuration(duration: Duration) {
 }
 
 export function unwrapJsonataDateTime(value: unknown): unknown {
-  if (value && typeof value === 'object' && LUXON_DATE_TIME in value) {
-    return (value as Record<symbol, DateTime>)[LUXON_DATE_TIME]
-  }
-  return value
+  return unwrapNative(value)
 }
 
 function bindDateTimeMethod(dt: DateTime, method: (typeof DATETIME_METHODS)[number]) {
@@ -60,7 +56,7 @@ export function toJsonataDateTime(dt: DateTime) {
     value[method] = bindDateTimeMethod(dt, method)
   }
 
-  Object.defineProperty(value, LUXON_DATE_TIME, {
+  Object.defineProperty(value, NATIVE_LUXON_DATE_TIME, {
     value: dt,
     enumerable: false,
   })

@@ -1,6 +1,7 @@
 import { Focus } from 'jsonata'
 import pRetry, { AbortError } from 'p-retry'
 import { includes, split, trim } from 'lodash-es'
+import { toJsonataBlob } from './toJsonataBlob'
 
 type PdfOptions = {
   title?: string
@@ -48,7 +49,7 @@ async function convertMdToPdf(
   markdown: string,
   options: PdfOptions = {},
   assetHeaders: AssetHeaders = {}
-): Promise<Blob> {
+) {
   const documentParserApiUrl = this.environment.lookup('documentParserApiUrl')
   const documentParserApiKey = this.environment.lookup('documentParserApiKey')
 
@@ -111,9 +112,10 @@ async function convertMdToPdf(
       }
       const arrayBuffer = await response.arrayBuffer()
       const filename = getFilenameFromHeaders(response, options.filename)
-      const blob: any = new Blob([arrayBuffer], { type: 'application/pdf' })
-      blob.name = filename
-      return blob
+      const wrapped = toJsonataBlob(
+        new Blob([arrayBuffer], { type: 'application/pdf' })
+      )
+      return filename ? { ...wrapped, name: filename } : wrapped
     },
     {
       retries: 5,

@@ -1,18 +1,24 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import { unwrapReadableStream } from './unwrapNative'
+
 async function bufferToString(
-  value: Buffer | ReadableStream,
+  value: Buffer | ReadableStream | unknown,
   encoding: BufferEncoding | undefined
 ) {
-  if (value instanceof ReadableStream) {
+  const stream = unwrapReadableStream(value)
+  if (stream) {
     const chunks: Buffer[] = []
-    for await (const chunk of value) {
+    for await (const chunk of stream) {
       chunks.push(Buffer.from(chunk))
     }
     const buffer = Buffer.concat(chunks as readonly Uint8Array[])
     return buffer.toString(encoding)
   }
-  return value.toString(encoding)
+  if (value instanceof Buffer || value instanceof Uint8Array) {
+    return Buffer.from(value as Buffer).toString(encoding)
+  }
+  throw new Error('Unsupported value type for bufferToString')
 }
 
 export default bufferToString
