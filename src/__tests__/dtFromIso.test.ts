@@ -1,4 +1,6 @@
+import jsonata from 'jsonata'
 import dtFromIso from '../functions/dtFromIso'
+import { registerDatetimeExtensions } from '../presets/datetime'
 import { describe, expect, it } from 'vitest'
 
 describe('dtFromIso', () => {
@@ -30,5 +32,12 @@ describe('dtFromIso', () => {
   it('should handle an undefined value', () => {
     const result = dtFromIso(undefined as unknown as string)
     expect(result.isValid).toBe(false)
+  })
+
+  it('exposes .year to JSONata 2.2+ expressions', async () => {
+    const expr = registerDatetimeExtensions(
+      jsonata('$dtFromIso("2024-01-15T00:00:00.000Z", "UTC").year')
+    )
+    await expect(expr.evaluate({})).resolves.toBe(2024)
   })
 })
