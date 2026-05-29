@@ -37,4 +37,13 @@ describe('dtFromFormat', () => {
     const result = dtFromFormat(date, format)
     expect(result.isValid).toBe(false)
   })
+
+  it('exposes Luxon methods to JSONata 2.2+ expressions', async () => {
+    const jsonata = (await import('jsonata')).default
+    const { registerDatetimeExtensions } = await import('../presets/datetime')
+    const expr = registerDatetimeExtensions(
+      jsonata('$dtFromFormat("2024-01-15", "yyyy-MM-dd").toFormat("yyyy")')
+    )
+    await expect(expr.evaluate({})).resolves.toBe('2024')
+  })
 })
