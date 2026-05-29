@@ -1,12 +1,13 @@
 import dtFromIso from '../functions/dtFromIso'
-import { DateTime } from 'luxon'
 import { describe, expect, it } from 'vitest'
 
 describe('dtFromIso', () => {
-  it('should convert a valid ISO string to a DateTime object', () => {
+  it('should convert a valid ISO string to a jsonata-safe date object', () => {
     const isoString = '2023-10-01T12:00:00.000Z'
     const result = dtFromIso(isoString)
-    expect(result).toBeInstanceOf(DateTime)
+    expect(result.isValid).toBe(true)
+    expect(result.year).toBe(2023)
+    expect(result.toUTC().toISO()).toBe('2023-10-01T12:00:00.000Z')
   })
 
   it('should handle an invalid ISO string', () => {
