@@ -1,5 +1,6 @@
 import jsonata from 'jsonata'
 import trutoJsonata from '../index'
+import { registerCoreExtensions } from '../presets/core'
 import { registerDatetimeExtensions } from '../presets/datetime'
 import mappingCases from './fixtures/datetime-mapping-cases.json'
 import { describe, expect, it } from 'vitest'
@@ -63,6 +64,46 @@ describe('Luxon forwarding for unified mapping patterns', () => {
     )
     const result = await expr.evaluate({})
     expect(result).toBeInstanceOf(Date)
+  })
+})
+
+describe('parseUrl JSONata 2.2', () => {
+  const sample =
+    'https://api.example.com/files/abc?mime_type=image%2Fpng&token=xyz'
+
+  it('blocks .origin on raw URL from a custom function', async () => {
+    const expr = jsonata('$parseUrl(u).origin')
+    expr.registerFunction('parseUrl', (u: string) => new URL(u))
+    await expect(expr.evaluate({ u: sample })).resolves.toBeUndefined()
+  })
+
+  it('allows .origin, .pathname, and .searchParams.get via truto parseUrl', async () => {
+    const origin = registerCoreExtensions(jsonata('$parseUrl(u).origin'))
+    await expect(origin.evaluate({ u: sample })).resolves.toBe(
+      'https://api.example.com'
+    )
+
+    const pathname = registerCoreExtensions(jsonata('$parseUrl(u).pathname'))
+    await expect(pathname.evaluate({ u: sample })).resolves.toBe('/files/abc')
+
+    const mime = registerCoreExtensions(
+      jsonata('$parseUrl(u).searchParams.get("mime_type")')
+    )
+    await expect(mime.evaluate({ u: sample })).resolves.toBe('image/png')
+  })
+
+  it('supports ticketing file_url assignment pattern', async () => {
+    const expr = registerCoreExtensions(
+      jsonata(
+        '($u := $parseUrl(file_url); $u.pathname & $u.searchParams.get("mime_type"))'
+      )
+    )
+    await expect(
+      expr.evaluate({
+        file_url:
+          'https://cdn.example.com/a/b.pdf?mime_type=application%2Fpdf',
+      })
+    ).resolves.toBe('/a/b.pdfapplication/pdf')
   })
 })
 

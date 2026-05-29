@@ -2343,7 +2343,7 @@ expression.evaluate({}).then(result => { console.log(result); });
 <details>
 <summary>parseUrl(urlString)</summary>
 
-Parses a URL string and returns a [URL object](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL)
+Parses a URL string and returns a plain object with own properties (`origin`, `pathname`, `search`, `searchParams`, etc.) so fields are accessible in JSONata 2.2+ expressions (parsed via the [URL API](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL)).
 
 **Example:**
 

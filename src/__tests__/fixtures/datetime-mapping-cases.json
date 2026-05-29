@@ -100,5 +100,21 @@
     "expression": "due_date ? $dtFromIso(due_date).toFormat('yyyy-MM-dd')",
     "bindings": { "due_date": "2024-06-01T00:00:00.000Z" },
     "expectType": "string"
+  },
+  {
+    "name": "voice: parseUrl origin and pathname split",
+    "expression": "$parseUrl(url).origin & $parseUrl(url).pathname",
+    "bindings": { "url": "https://api.example.com/v1/record/99" },
+    "expectType": "string"
+  },
+  {
+    "name": "ticketing: parseUrl searchParams.get mime_type",
+    "expression": "$parseUrl(rawQuery.file_url).searchParams.get('mime_type')",
+    "bindings": {
+      "rawQuery": {
+        "file_url": "https://cdn.example.com/f.pdf?mime_type=application%2Fpdf"
+      }
+    },
+    "expectType": "string"
   }
 ]
