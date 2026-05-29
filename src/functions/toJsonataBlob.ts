@@ -4,7 +4,7 @@ import { toJsonataReadableStream } from './toJsonataReadableStream'
 export type JsonataBlob = ReturnType<typeof toJsonataBlob>
 
 export function toJsonataBlob(blob: Blob) {
-  return {
+  const value = {
     size: blob.size,
     type: blob.type,
     arrayBuffer: () => blob.arrayBuffer(),
@@ -12,6 +12,7 @@ export function toJsonataBlob(blob: Blob) {
     slice: (start?: number, end?: number, contentType?: string) =>
       toJsonataBlob(blob.slice(start, end, contentType)),
     stream: () => toJsonataReadableStream(blob.stream()),
-    [NATIVE_BLOB]: blob,
   }
+  Object.defineProperty(value, NATIVE_BLOB, { value: blob, enumerable: false })
+  return value
 }
