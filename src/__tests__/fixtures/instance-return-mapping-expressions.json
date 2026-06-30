@@ -1,0 +1,9 @@
+[
+  "$base64ToBlob('SGVsbG8=').size",
+  "$blob('hello', {'type': 'text/plain'}).type",
+  "$dependencyGraph([{'id':'b','parent_id':'a'},{'id':'a'}], 'parent_id', 'id').overallOrder()",
+  "$getArrayBuffer(body.file)",
+  "$jsonToParquet([{'id': 1}]).byteLength",
+  "($b := $blob('a', {'type': 'text/plain'}); $getArrayBuffer($b))",
+  "($b := $blob('a', {'type': 'text/plain'}); $substring($getDataUri($b, 'text/plain'), 0, 5))"
+]

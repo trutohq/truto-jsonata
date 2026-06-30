@@ -25,12 +25,20 @@ The native instance is stored under a **non-enumerable** `Symbol`, so it never a
 
 ## Tests
 
+Vendored JSON fixtures under `src/__tests__/fixtures/*-mapping-expressions.json` are extracted from production unified-model YAML and run in CI — no local truto checkout or YAML files required.
+
+Refresh fixtures after mapping changes (local only):
+
+```bash
+bun run scripts/extractWrapperMappingSnippets.ts /path/to/unified-model/models
+```
+
 ```bash
 yarn vitest run src/__tests__/instanceReturnAudit.test.ts
 yarn vitest run src/__tests__/jsonata22Prototype.compat.test.ts
 yarn vitest run src/functions/__tests__/toJsonataWrappers.unit.test.ts
 yarn vitest run src/__tests__/jsonataWrappers.compat.test.ts
-# Regression net over vendored production mapping snippets (runs in CI):
 yarn vitest run src/__tests__/unifiedMappingDatetime.scan.test.ts
 yarn vitest run src/__tests__/unifiedMappingParseUrl.scan.test.ts
+yarn vitest run src/__tests__/unifiedMappingInstanceReturns.scan.test.ts
 ```
