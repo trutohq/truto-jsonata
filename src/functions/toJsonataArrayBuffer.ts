@@ -1,12 +1,14 @@
 import { NATIVE_ARRAY_BUFFER } from './unwrapNative'
 
-export type JsonataArrayBuffer = ReturnType<typeof toJsonataArrayBuffer>
-
 export function toJsonataArrayBuffer(buffer: ArrayBuffer) {
-  return {
+  const value = {
     byteLength: buffer.byteLength,
     slice: (start?: number, end?: number) =>
-      toJsonataArrayBuffer(buffer.slice(start, end)),
-    [NATIVE_ARRAY_BUFFER]: buffer,
+      toJsonataArrayBuffer(buffer.slice(start ?? 0, end)),
   }
+  Object.defineProperty(value, NATIVE_ARRAY_BUFFER, {
+    value: buffer,
+    enumerable: false,
+  })
+  return value
 }

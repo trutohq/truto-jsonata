@@ -1,7 +1,5 @@
 import { NATIVE_URL } from './unwrapNative'
 
-export type JsonataUrl = ReturnType<typeof toJsonataUrl>
-
 /** Plain object with own properties so JSONata 2.2+ can access URL fields and searchParams. */
 export function toJsonataUrl(url: URL) {
   const params = url.searchParams
@@ -21,8 +19,23 @@ export function toJsonataUrl(url: URL) {
       get: (name: string) => params.get(name),
       has: (name: string) => params.has(name),
       getAll: (name: string) => params.getAll(name),
+      keys: () => [...params.keys()],
+      values: () => [...params.values()],
+      entries: () => [...params.entries()],
+      size: params.size,
+      toString: () => params.toString(),
     },
   }
+  // Non-enumerable so $keys stays clean, but explicit `.toString()` / JSON
+  // serialization still behave like the native URL (which returns href).
+  Object.defineProperty(value, 'toString', {
+    value: () => url.href,
+    enumerable: false,
+  })
+  Object.defineProperty(value, 'toJSON', {
+    value: () => url.href,
+    enumerable: false,
+  })
   Object.defineProperty(value, NATIVE_URL, { value: url, enumerable: false })
   return value
 }

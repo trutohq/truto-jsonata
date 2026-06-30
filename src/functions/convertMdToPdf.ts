@@ -112,10 +112,10 @@ async function convertMdToPdf(
       }
       const arrayBuffer = await response.arrayBuffer()
       const filename = getFilenameFromHeaders(response, options.filename)
-      const wrapped = toJsonataBlob(
-        new Blob([arrayBuffer], { type: 'application/pdf' })
+      return toJsonataBlob(
+        new Blob([arrayBuffer], { type: 'application/pdf' }),
+        filename ? { name: filename } : undefined
       )
-      return filename ? { ...wrapped, name: filename } : wrapped
     },
     {
       retries: 5,

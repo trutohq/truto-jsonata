@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import trutoJsonata from '../index'
+import vendoredExpressions from './fixtures/datetime-mapping-expressions.json'
 import { describe, expect, it } from 'vitest'
 
 const TRUTO_MODELS = path.resolve(
@@ -79,6 +80,16 @@ const FIXTURE: Record<string, unknown> = {
 
 const scanAvailable = fs.existsSync(TRUTO_MODELS)
 const scannedExpressions = scanAvailable ? collectExpressions(TRUTO_MODELS) : []
+
+describe('Vendored unified-mapping datetime snippets (always runs)', () => {
+  it.each(vendoredExpressions)(
+    'evaluates without JSONata 2.2 wrapper regression: %s',
+    async expression => {
+      const result = await trutoJsonata(expression).evaluate(FIXTURE)
+      expect(result, expression).toBeDefined()
+    }
+  )
+})
 
 describe.skipIf(!scanAvailable)(
   'Unified model YAML datetime smoke scan (local truto checkout)',

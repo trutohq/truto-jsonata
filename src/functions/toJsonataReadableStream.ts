@@ -1,22 +1,28 @@
 import { NATIVE_READABLE_STREAM, NATIVE_READABLE_STREAM_READER } from './unwrapNative'
 
-export type JsonataReadableStream = ReturnType<typeof toJsonataReadableStream>
-
 export function toJsonataReadableStream(stream: ReadableStream) {
-  return {
+  const value = {
     locked: stream.locked,
     cancel: (reason?: unknown) => stream.cancel(reason),
     tee: () => stream.tee().map(branch => toJsonataReadableStream(branch)),
     getReader: () => {
       const reader = stream.getReader()
-      return {
+      const wrappedReader = {
         read: () => reader.read(),
         releaseLock: () => reader.releaseLock(),
         cancel: (reason?: unknown) => reader.cancel(reason),
         closed: reader.closed,
-        [NATIVE_READABLE_STREAM_READER]: reader,
       }
+      Object.defineProperty(wrappedReader, NATIVE_READABLE_STREAM_READER, {
+        value: reader,
+        enumerable: false,
+      })
+      return wrappedReader
     },
-    [NATIVE_READABLE_STREAM]: stream,
   }
+  Object.defineProperty(value, NATIVE_READABLE_STREAM, {
+    value: stream,
+    enumerable: false,
+  })
+  return value
 }

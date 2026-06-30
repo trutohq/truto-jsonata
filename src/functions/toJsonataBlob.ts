@@ -1,9 +1,10 @@
 import { NATIVE_BLOB } from './unwrapNative'
 import { toJsonataReadableStream } from './toJsonataReadableStream'
 
-export type JsonataBlob = ReturnType<typeof toJsonataBlob>
-
-export function toJsonataBlob(blob: Blob) {
+export function toJsonataBlob(
+  blob: Blob,
+  extraProps?: Record<string, unknown>
+) {
   const value = {
     size: blob.size,
     type: blob.type,
@@ -12,6 +13,7 @@ export function toJsonataBlob(blob: Blob) {
     slice: (start?: number, end?: number, contentType?: string) =>
       toJsonataBlob(blob.slice(start, end, contentType)),
     stream: () => toJsonataReadableStream(blob.stream()),
+    ...extraProps,
   }
   Object.defineProperty(value, NATIVE_BLOB, { value: blob, enumerable: false })
   return value

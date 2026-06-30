@@ -8,6 +8,12 @@ import { toJsonataDepGraph } from '../toJsonataDepGraph'
 import { toJsonataReadableStream } from '../toJsonataReadableStream'
 import { toJsonataUrl } from '../parseUrl'
 import {
+  NATIVE_ARRAY_BUFFER,
+  NATIVE_BLOB,
+  NATIVE_DEP_GRAPH,
+  NATIVE_LUXON_DATE_TIME,
+  NATIVE_READABLE_STREAM,
+  NATIVE_URL,
   unwrapArrayBuffer,
   unwrapBlob,
   unwrapDateTime,
@@ -41,6 +47,51 @@ describe('toJsonataBlob', () => {
     const stream = wrapped.stream()
     expect(stream.locked).toBe(false)
     expect(unwrapReadableStream(stream)).toBeInstanceOf(ReadableStream)
+  })
+
+  it('accepts extra own props while preserving the native symbol', () => {
+    const named = toJsonataBlob(blob, { name: 'report.pdf' })
+    expect((named as { name: string }).name).toBe('report.pdf')
+    expect(unwrapBlob(named)).toBe(blob)
+  })
+})
+
+describe('native symbols are non-enumerable across wrappers', () => {
+  function makeGraph() {
+    const graph = new DepGraph<string>()
+    graph.addNode('a', 'data')
+    return graph
+  }
+
+  it('native handle is a non-enumerable own symbol', () => {
+    const cases: ReadonlyArray<[object, symbol]> = [
+      [toJsonataArrayBuffer(new ArrayBuffer(2)), NATIVE_ARRAY_BUFFER],
+      [toJsonataReadableStream(new ReadableStream()), NATIVE_READABLE_STREAM],
+      [toJsonataDepGraph(makeGraph()), NATIVE_DEP_GRAPH],
+      [toJsonataBlob(new Blob(['x'])), NATIVE_BLOB],
+      [toJsonataUrl(new URL('https://x.test')), NATIVE_URL],
+      [toJsonataDateTime(DateTime.now()), NATIVE_LUXON_DATE_TIME],
+    ]
+    for (const [obj, sym] of cases) {
+      expect(Object.getOwnPropertySymbols(obj)).toContain(sym)
+      expect(Object.getOwnPropertyDescriptor(obj, sym)?.enumerable).toBe(false)
+    }
+  })
+
+  it('Object.keys excludes native handles', () => {
+    expect(Object.keys(toJsonataArrayBuffer(new ArrayBuffer(2)))).toEqual([
+      'byteLength',
+      'slice',
+    ])
+  })
+
+  it('instanceof-based unwrap returns undefined for spread copies', () => {
+    expect(unwrapArrayBuffer({ ...toJsonataArrayBuffer(new ArrayBuffer(2)) })).toBeUndefined()
+    expect(
+      unwrapReadableStream({ ...toJsonataReadableStream(new ReadableStream()) })
+    ).toBeUndefined()
+    expect(unwrapBlob({ ...toJsonataBlob(new Blob(['x'])) })).toBeUndefined()
+    expect(unwrapUrl({ ...toJsonataUrl(new URL('https://x.test')) })).toBeUndefined()
   })
 })
 
@@ -107,7 +158,7 @@ describe('toJsonataDepGraph', () => {
 
 describe('toJsonataDateTime', () => {
   it('forwards every bound Luxon method', () => {
-    const dt = DateTime.fromISO('2024-06-15T14:30:00.000Z')
+    const dt = DateTime.fromISO('2024-06-15T14:30:00.000Z', { zone: 'UTC' })
     const wrapped = toJsonataDateTime(dt)
 
     expect(wrapped.year).toBe(2024)
@@ -122,10 +173,66 @@ describe('toJsonataDateTime', () => {
     expect(wrapped.toJSDate()).toBeInstanceOf(Date)
     expect(
       wrapped
-        .diff(DateTime.fromISO('2024-06-15T00:00:00.000Z'), 'hours')
+        .diff(DateTime.fromISO('2024-06-15T00:00:00.000Z', { zone: 'UTC' }), 'hours')
         .toObject().hours
     ).toBeCloseTo(14.5, 5)
     expect(unwrapDateTime(wrapped)?.toISO()).toBe(dt.toISO())
+  })
+
+  it('exposes the extended scalar getters', () => {
+    const dt = DateTime.fromISO('2024-06-15T14:30:00.000Z', { zone: 'UTC' })
+    const wrapped = toJsonataDateTime(dt)
+
+    expect(wrapped.weekday).toBe(dt.weekday)
+    expect(wrapped.quarter).toBe(2)
+    expect(wrapped.ordinal).toBe(dt.ordinal)
+    expect(wrapped.weekNumber).toBe(dt.weekNumber)
+    expect(wrapped.daysInMonth).toBe(30)
+    expect(wrapped.zoneName).toBe('UTC')
+    expect(wrapped.zone).toBe('UTC')
+    expect(wrapped.offset).toBe(0)
+    expect(wrapped.isValid).toBe(true)
+  })
+
+  it('forwards the extended methods', () => {
+    const dt = DateTime.fromISO('2024-06-15T14:30:00.000Z', { zone: 'UTC' })
+    const wrapped = toJsonataDateTime(dt)
+
+    expect(wrapped.toUnixInteger()).toBe(dt.toUnixInteger())
+    expect(typeof wrapped.toISOTime()).toBe('string')
+    expect(typeof wrapped.toRFC2822()).toBe('string')
+    expect(typeof wrapped.toHTTP()).toBe('string')
+    expect(wrapped.valueOf()).toBe(dt.valueOf())
+    expect(wrapped.equals(DateTime.fromISO('2024-06-15T14:30:00.000Z', { zone: 'UTC' }))).toBe(true)
+    expect(wrapped.hasSame(DateTime.fromISO('2024-06-15T00:00:00.000Z', { zone: 'UTC' }), 'day')).toBe(true)
+    expect(wrapped.set({ hour: 0 }).hour).toBe(0)
+  })
+
+  it('JSON-serializes to an ISO string (backwards-compatible)', () => {
+    const dt = DateTime.fromISO('2024-06-15T14:30:00.000Z', { zone: 'UTC' })
+    const wrapped = toJsonataDateTime(dt)
+    expect(JSON.parse(JSON.stringify(wrapped))).toBe(dt.toISO())
+  })
+})
+
+describe('wrapDuration (via diff)', () => {
+  const a = DateTime.fromISO('2024-06-15T14:30:00.000Z', { zone: 'UTC' })
+  const b = DateTime.fromISO('2024-06-15T00:00:00.000Z', { zone: 'UTC' })
+  const duration = toJsonataDateTime(a).diff(b)
+
+  it('exposes object fields and toObject', () => {
+    expect(typeof duration.toObject()).toBe('object')
+  })
+
+  it('forwards as/toMillis/shiftTo/toFormat', () => {
+    expect(duration.as('hours')).toBeCloseTo(14.5, 5)
+    expect(duration.toMillis()).toBeCloseTo(14.5 * 3600 * 1000, 0)
+    expect(duration.shiftTo('minutes').toObject().minutes).toBeCloseTo(870, 0)
+    expect(typeof duration.toFormat('hh:mm')).toBe('string')
+  })
+
+  it('JSON-serializes to an ISO duration string', () => {
+    expect(typeof JSON.parse(JSON.stringify(duration))).toBe('string')
   })
 })
 
@@ -139,5 +246,27 @@ describe('toJsonataUrl', () => {
     expect(wrapped.searchParams.has('q')).toBe(true)
     expect(wrapped.searchParams.getAll('q')).toEqual(['1', '2'])
     expect(unwrapUrl(wrapped)?.href).toBe(url.href)
+  })
+
+  it('exposes extended searchParams helpers', () => {
+    const url = new URL('https://x.test/p?q=1&q=2&r=3')
+    const wrapped = toJsonataUrl(url)
+
+    expect(wrapped.searchParams.keys()).toEqual(['q', 'q', 'r'])
+    expect(wrapped.searchParams.values()).toEqual(['1', '2', '3'])
+    expect(wrapped.searchParams.entries()).toEqual([
+      ['q', '1'],
+      ['q', '2'],
+      ['r', '3'],
+    ])
+    expect(wrapped.searchParams.size).toBe(3)
+    expect(wrapped.searchParams.toString()).toBe('q=1&q=2&r=3')
+  })
+
+  it('toString and JSON serialization return href', () => {
+    const url = new URL('https://x.test/p?q=1')
+    const wrapped = toJsonataUrl(url)
+    expect((wrapped as { toString(): string }).toString()).toBe(url.href)
+    expect(JSON.parse(JSON.stringify(wrapped))).toBe(url.href)
   })
 })

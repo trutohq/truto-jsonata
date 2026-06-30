@@ -1,0 +1,19 @@
+[
+  "$parseUrl(url).href",
+  "$parseUrl(url).origin",
+  "$parseUrl(url).protocol",
+  "$parseUrl(url).host",
+  "$parseUrl(url).hostname",
+  "$parseUrl(url).pathname",
+  "$parseUrl(url).search",
+  "$parseUrl(url).origin & $parseUrl(url).pathname",
+  "$parseUrl(url).toString()",
+  "$parseUrl(file_url).searchParams.get('mime_type')",
+  "$parseUrl(file_url).searchParams.has('token')",
+  "$parseUrl(file_url).searchParams.getAll('token')",
+  "$parseUrl(file_url).searchParams.keys()",
+  "$parseUrl(file_url).searchParams.values()",
+  "$parseUrl(file_url).searchParams.toString()",
+  "$parseUrl(file_url).searchParams.size",
+  "$parseUrl(rawQuery.file_url).searchParams.get('mime_type')"
+]
