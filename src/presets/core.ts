@@ -84,6 +84,44 @@ export function registerCoreExtensions(expression: Expression): Expression {
   expression.registerFunction('uuid', uuid)
   expression.registerFunction('zipSqlResponse', zipSqlResponse)
 
+  // jsonata 2.2 changed $each and $sift to throw on undefined instead of
+  // returning undefined. Override with null-safe versions to preserve compat.
+  expression.registerFunction(
+    'each',
+    async function (
+      obj: Record<string, unknown> | undefined | null,
+      func: (...args: unknown[]) => unknown
+    ) {
+      if (obj === undefined || obj === null) return undefined
+      const result: unknown[] = []
+      for (const key of Object.keys(obj)) {
+        const val = await func(obj[key], key, obj)
+        if (val !== undefined) result.push(val)
+      }
+      return result.length === 0
+        ? undefined
+        : result.length === 1
+          ? result[0]
+          : result
+    }
+  )
+
+  expression.registerFunction(
+    'sift',
+    async function (
+      obj: Record<string, unknown> | undefined | null,
+      func: (...args: unknown[]) => unknown
+    ) {
+      if (obj === undefined || obj === null) return undefined
+      const result: Record<string, unknown> = {}
+      for (const key of Object.keys(obj)) {
+        const keep = await func(obj[key], key, obj)
+        if (keep) result[key] = obj[key]
+      }
+      return Object.keys(result).length === 0 ? undefined : result
+    }
+  )
+
   // lodash wrappers
   expression.registerFunction('groupBy', function (array: any, key: any) {
     return groupBy(castArray(array), key)

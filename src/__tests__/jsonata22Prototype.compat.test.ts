@@ -107,6 +107,79 @@ describe('parseUrl JSONata 2.2', () => {
   })
 })
 
+describe('$each null-safety (jsonata 2.2 regression)', () => {
+  it('returns undefined for $each(undefined, fn)', async () => {
+    const expr = trutoJsonata('$each(missing, function($v,$k){$v})')
+    await expect(expr.evaluate({})).resolves.toBeUndefined()
+  })
+
+  it('returns undefined for $each on null-valued field', async () => {
+    const expr = trutoJsonata('$each(x, function($v,$k){$v})')
+    await expect(expr.evaluate({ x: null })).resolves.toBeUndefined()
+  })
+
+  it('works normally for a single-entry object', async () => {
+    const expr = trutoJsonata('$each({"a":1}, function($v,$k){$v})')
+    await expect(expr.evaluate({})).resolves.toBe(1)
+  })
+
+  it('works normally for a multi-entry object', async () => {
+    const expr = trutoJsonata(
+      '$each({"a":1,"b":2}, function($v,$k){$string($v)})'
+    )
+    const result = await expr.evaluate({})
+    expect(result).toEqual(['1', '2'])
+  })
+
+  it('handles the production ternary pattern: $type(x)="string" ? ... : $each(x, fn)', async () => {
+    const expression = `$type(created_at) = "string"
+      ? { "op": "GT", "val": created_at }
+      : $each(created_at, function($v, $k) { { "op": $uppercase($k), "val": $v } })`
+
+    const absent = trutoJsonata(expression)
+    await expect(absent.evaluate({})).resolves.toBeUndefined()
+
+    const str = trutoJsonata(expression)
+    await expect(str.evaluate({ created_at: '2024-01-01' })).resolves.toEqual({
+      op: 'GT',
+      val: '2024-01-01',
+    })
+
+    const obj = trutoJsonata(expression)
+    const result = await obj.evaluate({
+      created_at: { gt: '2024-01-01', lt: '2024-12-31' },
+    })
+    expect(result).toEqual([
+      { op: 'GT', val: '2024-01-01' },
+      { op: 'LT', val: '2024-12-31' },
+    ])
+  })
+})
+
+describe('$sift null-safety (jsonata 2.2 regression)', () => {
+  it('returns undefined for $sift(undefined, fn)', async () => {
+    const expr = trutoJsonata('$sift(missing, function($v){$v})')
+    await expect(expr.evaluate({})).resolves.toBeUndefined()
+  })
+
+  it('returns undefined for $sift on null-valued field', async () => {
+    const expr = trutoJsonata('$sift(x, function($v){$v})')
+    await expect(expr.evaluate({ x: null })).resolves.toBeUndefined()
+  })
+
+  it('returns undefined for $sift on empty object', async () => {
+    const expr = trutoJsonata('$sift({}, function($v){$v})')
+    await expect(expr.evaluate({})).resolves.toBeUndefined()
+  })
+
+  it('filters object entries normally', async () => {
+    const expr = trutoJsonata(
+      '$sift({"a":1,"b":0,"c":2}, function($v){$v > 0})'
+    )
+    await expect(expr.evaluate({})).resolves.toEqual({ a: 1, c: 2 })
+  })
+})
+
 describe('Production unified-mapping datetime snippets', () => {
   it.each(mappingCases)('$name', async ({ expression, bindings, expectType }) => {
     const expr = trutoJsonata(expression)
