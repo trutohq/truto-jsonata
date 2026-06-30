@@ -1,0 +1,8 @@
+[
+  "$parseUrl(query.file_url).pathname",
+  "$parseUrl(rawQuery.file_url).searchParams.get('mime_type')",
+  "$parseUrl(url).origin",
+  "$parseUrl(url).origin & $parseUrl(url).pathname",
+  "$parseUrl(url).pathname",
+  "$parseUrl(url).search"
+]

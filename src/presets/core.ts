@@ -24,6 +24,7 @@ import blob from '../functions/blob'
 import bufferToString from '../functions/bufferToString'
 import convertCurrencyFromSubunit from '../functions/convertCurrencyFromSubunit'
 import convertCurrencyToSubunit from '../functions/convertCurrencyToSubunit'
+import dependencyGraph from '../functions/dependencyGraph'
 import diceCoefficient from '../functions/diceCoefficient'
 import digest from '../functions/digest'
 import firstNonEmpty from '../functions/firstNonEmpty'
@@ -60,6 +61,7 @@ export function registerCoreExtensions(expression: Expression): Expression {
     'convertCurrencyToSubunit',
     convertCurrencyToSubunit
   )
+  expression.registerFunction('dependencyGraph', dependencyGraph)
   expression.registerFunction('diceCoefficient', diceCoefficient)
   expression.registerFunction('digest', digest)
   expression.registerFunction('firstNonEmpty', firstNonEmpty)

@@ -2,12 +2,17 @@
 
 import { Focus } from 'jsonata'
 import pRetry, { AbortError } from 'p-retry'
+import { unwrapBlob, unwrapReadableStream } from './unwrapNative'
 
 async function parseDocument(
   this: Focus,
-  file: string | Buffer | ReadableStream,
+  file: string | Buffer | ReadableStream | unknown,
   fileType: string
 ) {
+  const body =
+    typeof file === 'string'
+      ? file
+      : unwrapBlob(file) ?? unwrapReadableStream(file) ?? file
   const documentParserApiUrl = this.environment.lookup('documentParserApiUrl')
   const documentParserApiKey = this.environment.lookup('documentParserApiKey')
   if (!documentParserApiKey) {
@@ -24,7 +29,7 @@ async function parseDocument(
           'user-agent': 'truto',
           Authorization: `Bearer ${documentParserApiKey}`,
         },
-        body: file,
+        body: body as BodyInit,
       })
       if (!response.ok) {
         if (response.status === 429) {

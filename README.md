@@ -188,8 +188,8 @@ Each preset is bundled independently for tree-shaking — unused presets don't i
 
 | Function | Description |
 |---|---|
-| [`$dtFromIso()`](#dtfromiso) | Parse an ISO date-time string to a Luxon DateTime |
-| [`$dtFromFormat()`](#dtfromformat) | Parse a date string with a custom format |
+| [`$dtFromIso()`](#dtfromiso) | Parse an ISO date-time string to a JSONata-safe date object |
+| [`$dtFromFormat()`](#dtfromformat) | Parse a date string with a custom format to a JSONata-safe date object |
 
 </details>
 
@@ -253,16 +253,16 @@ Below is a detailed list of all custom functions added to JSONata expressions, a
 <details>
 <summary>  dtFromIso(datetimeString)</summary>
 
-Converts an ISO date-time string to a [Luxon DateTime](https://moment.github.io/luxon/api-docs/index.html#datetime) object.
+Converts an ISO date-time string to a plain date object (parsed via [Luxon](https://moment.github.io/luxon/)) with own properties such as `year`, `month`, and `day`, so fields are accessible in JSONata 2.2+ expressions (e.g. `$dtFromIso('2024-11-05T12:00:00Z').year`). Optional second argument sets the IANA zone (e.g. `"UTC"`).
 
 **Example:**
 
 ```javascript
 import trutoJsonata from '@truto/truto-jsonata'
 
-const expression = trutoJsonata("$dtFromIso('2024-11-05T12:00:00Z')");
+const expression = trutoJsonata("$dtFromIso('2024-11-05T12:00:00Z').year");
 expression.evaluate({}).then(result => { console.log(result)});
-// Output: DateTime { ts: 2024-11-05T12:00:00.000+00:00, zone: UTC, locale: en-US }
+// Output: 2024
 ```
 
 </details>
@@ -273,16 +273,16 @@ expression.evaluate({}).then(result => { console.log(result)});
 <details>
 <summary> dtFromFormat(datetimeString, format)</summary>
 
-Parses a date-time string according to the specified format and returns a [Luxon DateTime](https://moment.github.io/luxon/api-docs/index.html#datetime) object.
+Parses a date-time string according to the specified format and returns the same JSONata-safe date object shape as `$dtFromIso` (own properties for `year`, `month`, etc.).
 
 **Example:**
 
 ```javascript
 import trutoJsonata from '@truto/truto-jsonata'
 
-const expression = trutoJsonata("$dtFromFormat('01-11-2022 12:00', 'dd-MM-yyyy HH:mm')");
+const expression = trutoJsonata("$dtFromFormat('01-11-2022 12:00', 'dd-MM-yyyy HH:mm').year");
 expression.evaluate({}).then(result => { console.log(result });
-// Output: DateTime { ts: 2022-11-01T12:00:00.000+00:00, zone: UTC, locale: en-US }
+// Output: 2022
 ```
 
 </details>
@@ -2343,7 +2343,7 @@ expression.evaluate({}).then(result => { console.log(result); });
 <details>
 <summary>parseUrl(urlString)</summary>
 
-Parses a URL string and returns a [URL object](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL)
+Parses a URL string and returns a plain object with own properties (`origin`, `pathname`, `search`, `searchParams`, etc.) so fields are accessible in JSONata 2.2+ expressions (parsed via the [URL API](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL)).
 
 **Example:**
 

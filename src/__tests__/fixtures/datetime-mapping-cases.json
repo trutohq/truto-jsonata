@@ -1,0 +1,120 @@
+[
+  {
+    "name": "user-directory: created_at toUTC",
+    "expression": "date_created ? $dtFromIso(date_created).toUTC()",
+    "bindings": { "date_created": "2024-01-15T12:00:00.000Z" },
+    "expectType": "object"
+  },
+  {
+    "name": "user-directory: toUTC().toISO() chain",
+    "expression": "createdon ? $dtFromIso(createdon).toUTC().toISO()",
+    "bindings": { "createdon": "2024-01-15T12:00:00.000Z" },
+    "expectType": "string"
+  },
+  {
+    "name": "user-directory: sys_created_on toFormat toISO",
+    "expression": "sys_created_on ? $dtFromFormat(sys_created_on, \"yyyy-MM-dd HH:mm:ss\").toISO()",
+    "bindings": { "sys_created_on": "2024-01-15 12:00:00" },
+    "expectType": "string"
+  },
+  {
+    "name": "user-directory: query filter toFormat",
+    "expression": "query.created_at.gt ? $dtFromIso(query.created_at.gt).toFormat('yyyy-MM-dd')",
+    "bindings": { "query": { "created_at": { "gt": "2024-01-15T00:00:00.000Z" } } },
+    "expectType": "string"
+  },
+  {
+    "name": "user-directory: created_at toMillis",
+    "expression": "$dtFromIso(created_at).toMillis()",
+    "bindings": { "created_at": "2024-01-15T00:00:00.000Z" },
+    "expectType": "number"
+  },
+  {
+    "name": "user-directory: minus months toMillis",
+    "expression": "$dtFromIso($now()).minus({ \"month\": 3 }).toMillis()",
+    "bindings": {},
+    "expectType": "number"
+  },
+  {
+    "name": "usage-metering: start_date toFormat",
+    "expression": "query.start_date ? $dtFromIso(query.start_date).toFormat('yyyy-LL-dd') : $dtFromIso($now()).toFormat('yyyy-LL-dd')",
+    "bindings": { "query": { "start_date": "2024-01-15T00:00:00.000Z" } },
+    "expectType": "string"
+  },
+  {
+    "name": "usage-metering: plus months toFormat",
+    "expression": "$dtFromFormat('2024-01', 'yyyy-LL').plus({ \"months\": 1 }).toFormat('yyyy-LL')",
+    "bindings": {},
+    "expectType": "string"
+  },
+  {
+    "name": "usage-metering: endOf month toFormat",
+    "expression": "$dtFromFormat('2024-01-15', 'yyyy-LL-dd').endOf('month').toFormat('yyyy-LL-dd')",
+    "bindings": {},
+    "expectType": "string"
+  },
+  {
+    "name": "sync-job: plus startOf toFormat",
+    "expression": "$dtFromFormat('2024-01-15', 'yyyy-MM-dd').plus({ \"days\": 1 }).startOf('day').toFormat('yyyy-MM-dd')",
+    "bindings": {},
+    "expectType": "string"
+  },
+  {
+    "name": "sync-job: claude maxDate startOf",
+    "expression": "$dtFromIso($now()).plus({ \"days\": -3 }).startOf('day').toFormat('yyyy-MM-dd')",
+    "bindings": {},
+    "expectType": "string"
+  },
+  {
+    "name": "ads: diff toObject minutes",
+    "expression": "$dtFromFormat('12:30:00', 'hh:mm:ss').diff($dtFromIso('2024-01-15T00:00:00.000Z').startOf('day'), ['minutes']).toObject().minutes",
+    "bindings": {},
+    "expectType": "number"
+  },
+  {
+    "name": "accounting: toISODate",
+    "expression": "$dtFromFormat('2024-01-15', 'yyyy-MM-dd').toISODate()",
+    "bindings": {},
+    "expectType": "string"
+  },
+  {
+    "name": "ecommerce: toJSDate",
+    "expression": "$dtFromIso('2024-01-15T00:00:00.000Z').toJSDate()",
+    "bindings": {},
+    "expectType": "object"
+  },
+  {
+    "name": "ats: toSeconds",
+    "expression": "$dtFromFormat('1667313600', 'fromSeconds').toSeconds()",
+    "bindings": {},
+    "expectType": "number"
+  },
+  {
+    "name": "crm: LL/dd/yyyy toISO",
+    "expression": "$dtFromFormat('01/15/2024', 'LL/dd/yyyy').toISO()",
+    "bindings": {},
+    "expectType": "string"
+  },
+  {
+    "name": "ticketing: due_date toFormat",
+    "expression": "due_date ? $dtFromIso(due_date).toFormat('yyyy-MM-dd')",
+    "bindings": { "due_date": "2024-06-01T00:00:00.000Z" },
+    "expectType": "string"
+  },
+  {
+    "name": "voice: parseUrl origin and pathname split",
+    "expression": "$parseUrl(url).origin & $parseUrl(url).pathname",
+    "bindings": { "url": "https://api.example.com/v1/record/99" },
+    "expectType": "string"
+  },
+  {
+    "name": "ticketing: parseUrl searchParams.get mime_type",
+    "expression": "$parseUrl(rawQuery.file_url).searchParams.get('mime_type')",
+    "bindings": {
+      "rawQuery": {
+        "file_url": "https://cdn.example.com/f.pdf?mime_type=application%2Fpdf"
+      }
+    },
+    "expectType": "string"
+  }
+]

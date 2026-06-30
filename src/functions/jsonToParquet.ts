@@ -1,4 +1,5 @@
 import { parquetWriteBuffer } from 'hyparquet-writer'
+import { toJsonataArrayBuffer } from './toJsonataArrayBuffer'
 import type { ColumnSource } from 'hyparquet-writer'
 import {
   castArray,
@@ -136,12 +137,12 @@ function columnSourceFor(
 export default function jsonToParquet(
   json: Record<string, unknown> | Record<string, unknown>[],
   options?: JsonToParquetOptions | Record<string, unknown>
-): ArrayBuffer {
+) {
   const jsonArray = compact(
     castArray(json)
   ) as Record<string, unknown>[]
   if (isEmpty(jsonArray)) {
-    return new ArrayBuffer(0)
+    return toJsonataArrayBuffer(new ArrayBuffer(0))
   }
 
   const names = collectColumnNames(jsonArray)
@@ -153,11 +154,13 @@ export default function jsonToParquet(
   )
 
   const opts = (options ?? {}) as JsonToParquetOptions
-  return parquetWriteBuffer({
-    columnData,
-    ...(opts.codec !== undefined ? { codec: opts.codec } : {}),
-    ...(opts.rowGroupSize !== undefined
-      ? { rowGroupSize: opts.rowGroupSize }
-      : {}),
-  })
+  return toJsonataArrayBuffer(
+    parquetWriteBuffer({
+      columnData,
+      ...(opts.codec !== undefined ? { codec: opts.codec } : {}),
+      ...(opts.rowGroupSize !== undefined
+        ? { rowGroupSize: opts.rowGroupSize }
+        : {}),
+    })
+  )
 }
