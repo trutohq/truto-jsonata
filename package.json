@@ -54,7 +54,7 @@
   },
   "resolutions": {
     "brace-expansion": "npm:brace-expansion@1.1.15",
-    "vite": "npm:vite@6.4.2",
+    "vite": "npm:vite@6.4.3",
     "picomatch": "npm:picomatch@4.0.4",
     "postcss": "npm:postcss@8.5.15",
     "langsmith": "npm:langsmith@0.7.3",
@@ -81,7 +81,7 @@
     "parcel": "2.16.4",
     "prettier": "2.8.4",
     "typescript": "5.1.6",
-    "vitest": "3.0.9"
+    "vitest": "4.1.0"
   },
   "dependencies": {
     "@json2csv/plainjs": "7.0.6",
