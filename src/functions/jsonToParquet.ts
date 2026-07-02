@@ -134,6 +134,71 @@ function columnSourceFor(
   }
 }
 
+const PARQUET_MAGIC = 'PAR1'
+// A well-formed Parquet file is at minimum a "PAR1" header (4 bytes) + the
+// footer metadata length as an int32 (4 bytes) + a "PAR1" footer (4 bytes).
+const PARQUET_MIN_BYTES = 12
+
+function readMagic(bytes: Uint8Array, start: number): string {
+  return String.fromCharCode(
+    bytes[start],
+    bytes[start + 1],
+    bytes[start + 2],
+    bytes[start + 3]
+  )
+}
+
+/**
+ * Verify that `buffer` looks like a structurally valid Parquet file before it
+ * is handed back to a caller. A valid file is a non-empty body that opens and
+ * closes with the `PAR1` magic markers and declares a footer-metadata length
+ * that fits within the body. Anything else (an empty body, truncated/garbage
+ * bytes, a corrupt footer) throws a descriptive error instead of being
+ * returned, so no caller uploads or persists a broken Parquet object.
+ *
+ * This is an intentionally cheap structural check — it does not parse the
+ * thrift footer — which keeps it dependency-free and safe to run on every
+ * write in Cloudflare Workers and other hot paths.
+ */
+function assertValidParquet(buffer: ArrayBuffer): void {
+  if (!(buffer instanceof ArrayBuffer)) {
+    throw new Error(
+      '$jsonToParquet expected the Parquet writer to return an ArrayBuffer but it did not'
+    )
+  }
+  if (buffer.byteLength === 0) {
+    throw new Error(
+      '$jsonToParquet produced an empty body; refusing to return invalid Parquet bytes'
+    )
+  }
+  if (buffer.byteLength < PARQUET_MIN_BYTES) {
+    throw new Error(
+      `$jsonToParquet produced only ${buffer.byteLength} bytes, too small to be a valid Parquet file`
+    )
+  }
+
+  const bytes = new Uint8Array(buffer)
+  const header = readMagic(bytes, 0)
+  const footer = readMagic(bytes, buffer.byteLength - 4)
+  if (header !== PARQUET_MAGIC || footer !== PARQUET_MAGIC) {
+    throw new Error(
+      `$jsonToParquet produced an invalid Parquet structure; expected "PAR1" magic markers but found header="${header}", footer="${footer}"`
+    )
+  }
+
+  // The 4 bytes immediately before the trailing magic hold the footer metadata
+  // length (little-endian int32). It must be positive and fit inside the body.
+  const footerLength = new DataView(buffer).getUint32(
+    buffer.byteLength - 8,
+    true
+  )
+  if (footerLength <= 0 || footerLength + PARQUET_MIN_BYTES > buffer.byteLength) {
+    throw new Error(
+      `$jsonToParquet produced a corrupt Parquet footer; declared metadata length ${footerLength} does not fit within ${buffer.byteLength} bytes`
+    )
+  }
+}
+
 export default function jsonToParquet(
   json: Record<string, unknown> | Record<string, unknown>[],
   options?: JsonToParquetOptions | Record<string, unknown>
@@ -142,10 +207,18 @@ export default function jsonToParquet(
     castArray(json)
   ) as Record<string, unknown>[]
   if (isEmpty(jsonArray)) {
-    return toJsonataArrayBuffer(new ArrayBuffer(0))
+    throw new Error(
+      '$jsonToParquet received no rows to encode; a valid Parquet file requires at least one record'
+    )
   }
 
   const names = collectColumnNames(jsonArray)
+  if (isEmpty(names)) {
+    throw new Error(
+      '$jsonToParquet received rows with no columns; a valid Parquet file requires at least one field'
+    )
+  }
+
   const columnData = map(names, (col) =>
     columnSourceFor(
       col,
@@ -154,13 +227,14 @@ export default function jsonToParquet(
   )
 
   const opts = (options ?? {}) as JsonToParquetOptions
-  return toJsonataArrayBuffer(
-    parquetWriteBuffer({
-      columnData,
-      ...(opts.codec !== undefined ? { codec: opts.codec } : {}),
-      ...(opts.rowGroupSize !== undefined
-        ? { rowGroupSize: opts.rowGroupSize }
-        : {}),
-    })
-  )
+  const buffer = parquetWriteBuffer({
+    columnData,
+    ...(opts.codec !== undefined ? { codec: opts.codec } : {}),
+    ...(opts.rowGroupSize !== undefined
+      ? { rowGroupSize: opts.rowGroupSize }
+      : {}),
+  })
+
+  assertValidParquet(buffer)
+  return toJsonataArrayBuffer(buffer)
 }

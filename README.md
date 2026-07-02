@@ -1103,7 +1103,7 @@ Converts a single object or an array of objects to **Apache Parquet** and return
 
 **Input**
 
-- **rows**: One `Record` or an array of records. `null` / `undefined` entries in an array are removed. If nothing is left, the result is an empty `ArrayBuffer`.
+- **rows**: One `Record` or an array of records. `null` / `undefined` entries in an array are removed. **At least one record with at least one field is required** — if nothing is left to encode, `$jsonToParquet` throws rather than returning an empty (and therefore corrupt) file.
 - **options** _(optional)_: Only the fields below are passed through; anything else is ignored. Omitted keys use [hyparquet-writer defaults](https://github.com/hyparam/hyparquet-writer) (for example default compression).
 
 | Option | Type | Description |
@@ -1112,6 +1112,10 @@ Converts a single object or an array of objects to **Apache Parquet** and return
 | **rowGroupSize** | `number` \| `number[]` | Rows per row group. A single number fixes the size; an array can define a tiered layout (see hyparquet-writer `ParquetWriteOptions`). |
 
 Nested objects and arrays are stored with Parquet’s **JSON** logical type (UTF-8 JSON text). Primitive columns are inferred where possible (`BOOLEAN`, `INT32` / `INT64` / `DOUBLE`, `STRING`, timestamps for `Date`, etc.).
+
+**Output validation:** Before returning, `$jsonToParquet` verifies that the encoded bytes are a structurally valid Parquet file — a non-empty body that begins and ends with the `PAR1` magic markers and carries a footer whose declared metadata length fits the body. If the check fails (empty body, truncated or corrupt output), it **throws a descriptive error instead of returning invalid bytes**, so a corrupt file is never handed back for upload or storage. Because the guarantee lives inside the function, it applies everywhere `$jsonToParquet` is evaluated — sync job V4 transforms, workflows, unified/mapping expressions, tests and CLI tooling — and each caller surfaces the failure through its own error handling.
+
+This is intentionally stricter than [`$jsonToCsv`](#jsontocsv), which returns an empty string for empty input: an empty CSV is still a valid file, whereas an empty Parquet file has no valid structure and would be rejected downstream. Guard possibly-empty inputs at the call site (for example `$count($rows) = 0 ? null : $jsonToParquet($rows)`) when you want to skip rather than fail.
 
 **Example:**
 
