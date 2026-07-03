@@ -113,9 +113,15 @@ describe('$each null-safety (jsonata 2.2 regression)', () => {
     await expect(expr.evaluate({})).resolves.toBeUndefined()
   })
 
-  it('returns undefined for $each on null-valued field', async () => {
+  it('rejects $each on null-valued field like the 2.0 builtin (T0410)', async () => {
+    // The jsonata 2.0 builtin threw T0410 for explicit null (signature
+    // validation rejects null for the `o` parameter); only *undefined* passed
+    // through gracefully. Matching that keeps upgrade behavior identical to
+    // what production mappings ran against.
     const expr = trutoJsonata('$each(x, function($v,$k){$v})')
-    await expect(expr.evaluate({ x: null })).resolves.toBeUndefined()
+    await expect(expr.evaluate({ x: null })).rejects.toMatchObject({
+      code: 'T0410',
+    })
   })
 
   it('works normally for a single-entry object', async () => {
@@ -162,9 +168,12 @@ describe('$sift null-safety (jsonata 2.2 regression)', () => {
     await expect(expr.evaluate({})).resolves.toBeUndefined()
   })
 
-  it('returns undefined for $sift on null-valued field', async () => {
+  it('rejects $sift on null-valued field like the 2.0 builtin (T0410)', async () => {
+    // Same builtin-parity rationale as the $each null test above.
     const expr = trutoJsonata('$sift(x, function($v){$v})')
-    await expect(expr.evaluate({ x: null })).resolves.toBeUndefined()
+    await expect(expr.evaluate({ x: null })).rejects.toMatchObject({
+      code: 'T0410',
+    })
   })
 
   it('returns undefined for $sift on empty object', async () => {

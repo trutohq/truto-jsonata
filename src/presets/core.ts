@@ -47,6 +47,66 @@ import toNumber from '../functions/toNumber'
 import uuid from '../functions/uuid'
 import zipSqlResponse from '../functions/zipSqlResponse'
 
+// Callbacks reach registered functions as jsonata-wrapped JS functions
+// carrying the declared parameter count in `arity` (lambdas) or
+// `implementation.length` (registered functions). `length` on the wrapper
+// itself is always 0, so it is only a last-resort fallback.
+type JsonataCallback = ((...args: unknown[]) => unknown) & {
+  arity?: number
+  implementation?: (...args: unknown[]) => unknown
+}
+
+function callbackArity(func: JsonataCallback): number {
+  if (typeof func.arity === 'number') return func.arity
+  if (typeof func.implementation === 'function') {
+    return func.implementation.length
+  }
+  return func.length
+}
+
+// Mirror of jsonata's internal hofFuncArgs: the value is always passed, the
+// key and the whole object only if the callback declares those parameters.
+// The arity is constant per $each/$sift call, so callers compute it once and
+// pass it in instead of re-probing the callback for every key.
+function callbackArgs(
+  arity: number,
+  value: unknown,
+  key: string,
+  obj: Record<string, unknown>
+): unknown[] {
+  const args: unknown[] = [value]
+  if (arity >= 2) args.push(key)
+  if (arity >= 3) args.push(obj)
+  return args
+}
+
+// Mirror of jsonata 2.0's internal boolean(): the effective boolean value the
+// builtin $sift applied to predicate results. Notably: function-shaped values
+// (jsonata lambdas are plain objects) hit the object branch and count as
+// truthy — that matches the 2.0 builtin, which had no isFunction exclusion —
+// and non-finite numbers throw D1001 exactly like jsonata's isNumeric().
+function effectiveBoolean(arg: unknown): boolean {
+  if (arg === undefined || arg === null) return false
+  if (Array.isArray(arg)) return arg.some(effectiveBoolean)
+  switch (typeof arg) {
+    case 'boolean':
+      return arg
+    case 'string':
+      return arg.length > 0
+    case 'number':
+      if (Number.isNaN(arg)) return false
+      if (!Number.isFinite(arg)) {
+        throw { code: 'D1001', stack: new Error().stack, value: arg }
+      }
+      return arg !== 0
+    case 'object':
+      return Object.keys(arg).length > 0
+    default:
+      // real JS functions and anything exotic
+      return false
+  }
+}
+
 export function registerCoreExtensions(expression: Expression): Expression {
   expression.registerFunction('base64decode', base64decode)
   expression.registerFunction('base64encode', base64encode)
@@ -85,17 +145,27 @@ export function registerCoreExtensions(expression: Expression): Expression {
   expression.registerFunction('zipSqlResponse', zipSqlResponse)
 
   // jsonata 2.2 changed $each and $sift to throw on undefined instead of
-  // returning undefined. Override with null-safe versions to preserve compat.
+  // returning undefined. Override with undefined-safe versions that otherwise
+  // replicate the 2.0 builtins exactly:
+  // - registered with the builtin signatures so the context-injection idiom
+  //   (`payload.$sift(function($v, $k) {...})`) keeps working — explicit null
+  //   input is rejected by signature validation with T0410 before the body
+  //   runs, matching the builtin (see the compat tests),
+  // - callback args trimmed to the callback's arity so signatured callbacks
+  //   (`$each(obj, $string)`) don't throw T0410,
+  // - $sift keeps entries per JSONata effective-boolean semantics ($boolean),
+  //   not JS truthiness, so e.g. empty arrays/objects are still dropped.
   expression.registerFunction(
     'each',
     async function (
-      obj: Record<string, unknown> | undefined | null,
-      func: (...args: unknown[]) => unknown
+      obj: Record<string, unknown> | undefined,
+      func: JsonataCallback
     ) {
-      if (obj === undefined || obj === null) return undefined
+      if (obj === undefined) return undefined
+      const arity = callbackArity(func)
       const result: unknown[] = []
       for (const key of Object.keys(obj)) {
-        const val = await func(obj[key], key, obj)
+        const val = await func(...callbackArgs(arity, obj[key], key, obj))
         if (val !== undefined) result.push(val)
       }
       return result.length === 0
@@ -103,23 +173,26 @@ export function registerCoreExtensions(expression: Expression): Expression {
         : result.length === 1
           ? result[0]
           : result
-    }
+    },
+    '<o-f:a>'
   )
 
   expression.registerFunction(
     'sift',
     async function (
-      obj: Record<string, unknown> | undefined | null,
-      func: (...args: unknown[]) => unknown
+      obj: Record<string, unknown> | undefined,
+      func: JsonataCallback
     ) {
-      if (obj === undefined || obj === null) return undefined
+      if (obj === undefined) return undefined
+      const arity = callbackArity(func)
       const result: Record<string, unknown> = {}
       for (const key of Object.keys(obj)) {
-        const keep = await func(obj[key], key, obj)
-        if (keep) result[key] = obj[key]
+        const keep = await func(...callbackArgs(arity, obj[key], key, obj))
+        if (effectiveBoolean(keep)) result[key] = obj[key]
       }
       return Object.keys(result).length === 0 ? undefined : result
-    }
+    },
+    '<o-f?:o>'
   )
 
   // lodash wrappers
