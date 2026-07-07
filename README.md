@@ -110,6 +110,50 @@ registerJsonataExtensions(expression);
 // Now you can use custom functions in your expression
 ```
 
+### Native values and the host boundary (v3.0.4+)
+
+JSONata 2.2 (used since `truto-jsonata` 3.0) changed two things that matter when
+native values (`URL`, `Response`, `File`, `Blob`, `ArrayBuffer`, Luxon
+`DateTime`) cross an expression:
+
+1. **Property lookup is own-property-only.** A live `URL`/`Response`/`Blob`
+   exposes its fields through prototype getters, so `url.pathname` or
+   `response.status` read as `undefined` inside an expression.
+2. **Custom functions box the natives they return.** `$parseUrl`, `$blob`,
+   `$jsonToParquet`, `$dtFromIso`, `$getArrayBuffer`, `$teeStream`, … hand back a
+   JSONata-safe *wrapper* so the value is readable inside expressions. Left
+   as-is once the result leaves JSONata, that wrapper fails `instanceof`, breaks
+   `structuredClone` (its function props are not cloneable), and serialises to
+   `"[object Object]"`.
+
+The default entrypoint handles both for you. **`trutoJsonata(expr).evaluate(input, bindings)`** transparently:
+
+- **mirrors native inputs** on the way in, so expressions can read
+  `url.pathname`, `response.status`, `body.file.name`, `buffer.byteLength`,
+  etc. (deep — natives nested in the input object/array are handled; the input
+  is not mutated except for in-place, non-destructive stamping of
+  `Blob`/`File`/`ArrayBuffer`), and
+- **unwraps native results** on the way out, so callers get back real
+  `ArrayBuffer`/`Blob`/`URL`/`DateTime` instances that satisfy `instanceof`,
+  survive `structuredClone`/`cloneDeep`, and serialise as they did before 3.x.
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata'
+
+// input mirroring — a live URL is readable:
+await trutoJsonata('u.pathname').evaluate({ u: new URL('https://a.com/p/q') })
+// → '/p/q'
+
+// output unwrapping — a real ArrayBuffer, not a wrapper:
+const buf = await trutoJsonata('$jsonToParquet(rows)').evaluate({ rows })
+buf instanceof ArrayBuffer // → true
+structuredClone(buf)       // → ok (no DataCloneError)
+```
+
+Host apps only need to bump the version — no per-call-site changes. The boundary
+applies to the **default entrypoint only**; a raw `jsonata()` expression wired up
+with `registerJsonataExtensions` or a preset does not get it.
+
 ### Tree-Shakeable Presets (v2.0+)
 
 For smaller bundles, import only the presets you need. Each preset is independent and can be composed:
