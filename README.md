@@ -113,12 +113,13 @@ registerJsonataExtensions(expression);
 ### Native values and the host boundary (v3.0.4+)
 
 JSONata 2.2 (used since `truto-jsonata` 3.0) changed two things that matter when
-native values (`URL`, `Response`, `File`, `Blob`, `ArrayBuffer`, Luxon
-`DateTime`) cross an expression:
+native values (`URL`, `Response`, `File`, `Blob`, `ArrayBuffer`, native `Date`,
+Luxon `DateTime`) cross an expression:
 
-1. **Property lookup is own-property-only.** A live `URL`/`Response`/`Blob`
-   exposes its fields through prototype getters, so `url.pathname` or
-   `response.status` read as `undefined` inside an expression.
+1. **Property lookup is own-property-only.** A live `URL`/`Response`/`Blob`/`Date`
+   exposes its fields/methods through the prototype, so `url.pathname`,
+   `response.status`, or `started_at.toISOString()` read as `undefined` /
+   throw `T1006` inside an expression.
 2. **Custom functions box the natives they return.** `$parseUrl`, `$blob`,
    `$jsonToParquet`, `$dtFromIso`, `$getArrayBuffer`, `$teeStream`, … hand back a
    JSONata-safe *wrapper* so the value is readable inside expressions. Left
@@ -130,12 +131,19 @@ The default entrypoint handles both for you. **`trutoJsonata(expr).evaluate(inpu
 
 - **mirrors native inputs** on the way in, so expressions can read
   `url.pathname`, `response.status`, `body.file.name`, `buffer.byteLength`,
-  etc. (deep — natives nested in the input object/array are handled; the input
-  is not mutated except for in-place, non-destructive stamping of
-  `Blob`/`File`/`ArrayBuffer`), and
+  `started_at.toISOString()`, etc. (deep — natives nested in the input
+  object/array are handled; the input is not mutated except for in-place,
+  non-destructive stamping of `Blob`/`File`/`ArrayBuffer`), and
 - **unwraps native results** on the way out, so callers get back real
-  `ArrayBuffer`/`Blob`/`URL`/`DateTime` instances that satisfy `instanceof`,
+  `ArrayBuffer`/`Blob`/`URL`/`Date`/`DateTime` instances that satisfy `instanceof`,
   survive `structuredClone`/`cloneDeep`, and serialise as they did before 3.x.
+
+**Coverage (must stay complete):** `URL`, `Response`, `Blob`, `File`,
+`ArrayBuffer`, native `Date` (host `new Date()`, e.g. sync-job `started_at` —
+distinct from Luxon `$dtFromIso`), plus unwrap for custom-function returns.
+Regression tests live in `src/__tests__/hostNativeBoundary.test.ts` (coverage
+matrix). When adding a new host-native type that expressions read via prototype
+getters/methods, extend the mirror **and** add a matrix row.
 
 ```javascript
 import trutoJsonata from '@truto/truto-jsonata'
@@ -143,6 +151,11 @@ import trutoJsonata from '@truto/truto-jsonata'
 // input mirroring — a live URL is readable:
 await trutoJsonata('u.pathname').evaluate({ u: new URL('https://a.com/p/q') })
 // → '/p/q'
+
+// host Date (not Luxon) — production sync-job idiom:
+await trutoJsonata('sync_job_run.started_at.toISOString()').evaluate({
+  sync_job_run: { started_at: new Date() },
+})
 
 // output unwrapping — a real ArrayBuffer, not a wrapper:
 const buf = await trutoJsonata('$jsonToParquet(rows)').evaluate({ rows })

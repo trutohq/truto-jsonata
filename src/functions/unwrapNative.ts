@@ -8,6 +8,8 @@ export const NATIVE_READABLE_STREAM_READER = Symbol('nativeReadableStreamReader'
 export const NATIVE_DEP_GRAPH = Symbol('nativeDepGraph')
 export const NATIVE_LUXON_DATE_TIME = Symbol('luxonDateTime')
 export const NATIVE_URL = Symbol('nativeUrl')
+/** Host `Date` mirrored for JSONata 2.2 (own-property methods); not Luxon. */
+export const NATIVE_DATE = Symbol('nativeDate')
 
 export function unwrapNative(value: unknown): unknown {
   if (!value || typeof value !== 'object') {
@@ -23,6 +25,7 @@ export function unwrapNative(value: unknown): unknown {
   if (NATIVE_DEP_GRAPH in record) return record[NATIVE_DEP_GRAPH]
   if (NATIVE_LUXON_DATE_TIME in record) return record[NATIVE_LUXON_DATE_TIME]
   if (NATIVE_URL in record) return record[NATIVE_URL]
+  if (NATIVE_DATE in record) return record[NATIVE_DATE]
   return value
 }
 
@@ -71,4 +74,9 @@ export function unwrapDateTime(value: unknown): DateTime | undefined {
 export function unwrapUrl(value: unknown): URL | undefined {
   const unwrapped = unwrapNative(value)
   return unwrapped instanceof URL ? unwrapped : undefined
+}
+
+export function unwrapDate(value: unknown): Date | undefined {
+  const unwrapped = unwrapNative(value)
+  return unwrapped instanceof Date ? unwrapped : undefined
 }

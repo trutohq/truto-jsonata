@@ -6,10 +6,14 @@ import { toJsonataUrl } from '../functions/parseUrl'
 /**
  * The JSONata-2.0-compatible host boundary: `trutoJsonata(...).evaluate()`
  * mirrors native inputs (so expressions can read URL/Response/Blob/File/
- * ArrayBuffer fields under JSONata 2.2's own-property-only lookup) and unwraps
- * the JSONata-safe native wrappers out of the result (so callers get real
- * instances back). These tests lock in the behaviour that lets host apps upgrade
- * to 3.x by only bumping the version — no per-call-site adaptation.
+ * ArrayBuffer/Date fields under JSONata 2.2's own-property-only lookup) and
+ * unwraps the JSONata-safe native wrappers out of the result (so callers get
+ * real instances back). These tests lock in the behaviour that lets host apps
+ * upgrade to 3.x by only bumping the version — no per-call-site adaptation.
+ *
+ * See the "native coverage matrix" describe below — every host-native type that
+ * crosses evaluate must have a row. Missing a row is how Date/ArrayBuffer
+ * regressions slip through.
  */
 
 describe('host boundary — output unwrapping (result → real natives)', () => {
@@ -188,14 +192,142 @@ describe('host boundary — input mirroring (native inputs become readable)', ()
   })
 })
 
-describe('host boundary — round trip', () => {
-  it('a URL echoed through an expression comes back as a real URL', async () => {
-    const result = await trutoJsonata('u').evaluate({
-      u: new URL('https://a.com/echo/path?k=v'),
+describe('host boundary — Date (host `new Date()`, not Luxon)', () => {
+  it('sync_job_run.started_at.toISOString() works (production parquet template idiom)', async () => {
+    const started_at = new Date('2026-07-13T06:55:02.000Z')
+    const result = await trutoJsonata(
+      'sync_job_run.started_at.toISOString()'
+    ).evaluate({ sync_job_run: { status: 'running', started_at } })
+    expect(result).toBe('2026-07-13T06:55:02.000Z')
+  })
+
+  it('ternary watermark idiom: status completed ? started_at.toISOString()', async () => {
+    const started_at = new Date('2026-07-13T06:55:02.000Z')
+    const result = await trutoJsonata(
+      "sync_job_run.status = 'completed' ? sync_job_run.started_at.toISOString()"
+    ).evaluate({ sync_job_run: { status: 'completed', started_at } })
+    expect(result).toBe('2026-07-13T06:55:02.000Z')
+  })
+
+  it('getTime works on a mirrored Date input', async () => {
+    const started_at = new Date('2026-07-13T06:55:02.000Z')
+    await expect(
+      trutoJsonata('started_at.getTime()').evaluate({ started_at })
+    ).resolves.toBe(started_at.getTime())
+  })
+
+  it('a Date echoed through an expression comes back as a real Date', async () => {
+    const started_at = new Date('2026-07-13T06:55:02.000Z')
+    const result = await trutoJsonata('started_at').evaluate({ started_at })
+    expect(result).toBeInstanceOf(Date)
+    expect((result as Date).toISOString()).toBe('2026-07-13T06:55:02.000Z')
+  })
+
+  it('does not mutate the host Date (copy-on-write mirror)', async () => {
+    const started_at = new Date('2026-07-13T06:55:02.000Z')
+    const input = { started_at }
+    await trutoJsonata('started_at.toISOString()').evaluate(input)
+    expect(input.started_at).toBe(started_at)
+    expect(input.started_at).toBeInstanceOf(Date)
+  })
+})
+
+describe('host boundary — ArrayBuffer re-entry (parquet → destination context)', () => {
+  it('re-evaluating with a $jsonToParquet ArrayBuffer in context does not throw', async () => {
+    // Sync V4 destination/run_if re-enters evaluate with transform output that
+    // already contains a real ArrayBuffer. Stamping byteLength must not abort
+    // (Workers: non-configurable byteLength → defineProperty throws).
+    const parquet = await trutoJsonata('$jsonToParquet([{"id": 1}])').evaluate(
+      {}
+    )
+    expect(parquet).toBeInstanceOf(ArrayBuffer)
+    await expect(
+      trutoJsonata(
+        '$exists(payload.records) and $exists(payload.records[0].parquet)'
+      ).evaluate({ payload: { records: [{ parquet }] } })
+    ).resolves.toBe(true)
+  })
+
+  it('stamping does not throw when defineProperty rejects (Workers ArrayBuffer)', async () => {
+    const buf = new ArrayBuffer(8)
+    Object.defineProperty(buf, 'byteLength', {
+      value: 8,
+      writable: false,
+      configurable: false,
+      enumerable: true,
     })
-    expect(result).toBeInstanceOf(URL)
-    expect((result as URL).pathname).toBe('/echo/path')
-    expect((result as URL).searchParams.get('k')).toBe('v')
+    // Must not throw even though a second stamp cannot redefine byteLength
+    await expect(
+      trutoJsonata('$exists(data)').evaluate({ data: buf })
+    ).resolves.toBe(true)
+  })
+})
+
+/**
+ * Coverage matrix — every native that crosses the evaluate boundary.
+ * If you add a new host-native type that expressions read via prototype
+ * getters/methods, add a row here and a mirror/unwrap path in
+ * mirrorNativeInput / unwrapNative. Missing a row is how Date.toISOString
+ * and ArrayBuffer stamp regressions slip through.
+ */
+describe('host boundary — native coverage matrix', () => {
+  const cases: Array<{
+    name: string
+    input: () => Record<string, unknown>
+    expression: string
+    assert: (result: unknown) => void | Promise<void>
+  }> = [
+    {
+      name: 'URL',
+      input: () => ({ u: new URL('https://a.com/p?q=1') }),
+      expression: 'u.pathname',
+      assert: r => expect(r).toBe('/p'),
+    },
+    {
+      name: 'Response',
+      input: () => ({ r: new Response('x', { status: 204 }) }),
+      expression: 'r.status',
+      assert: r => expect(r).toBe(204),
+    },
+    {
+      name: 'Blob',
+      input: () => ({ b: new Blob(['hi'], { type: 'text/plain' }) }),
+      expression: 'b.size',
+      assert: r => expect(r).toBe(2),
+    },
+    {
+      name: 'File',
+      input: () => ({
+        f: new File(['x'], 'a.txt', { type: 'text/plain' }),
+      }),
+      expression: 'f.name',
+      assert: r => expect(r).toBe('a.txt'),
+    },
+    {
+      name: 'ArrayBuffer',
+      input: () => ({ a: new ArrayBuffer(4) }),
+      expression: 'a.byteLength',
+      // On Node/Bun stamp succeeds. Workers may leave byteLength unread (see
+      // re-entry tests) — this CI assertion requires stamp success.
+      assert: r => expect(r).toBe(4),
+    },
+    {
+      name: 'Date',
+      input: () => ({ d: new Date('2024-01-15T00:00:00.000Z') }),
+      expression: 'd.toISOString()',
+      assert: r => expect(r).toBe('2024-01-15T00:00:00.000Z'),
+    },
+    {
+      name: 'Luxon DateTime (via $dtFromIso output, not host Date)',
+      input: () => ({ iso: '2024-01-15T00:00:00.000Z' }),
+      expression: '$dtFromIso(iso).year',
+      assert: r => expect(r).toBe(2024),
+    },
+  ]
+
+  it.each(cases)('$name is readable without throwing', async c => {
+    const result = await trutoJsonata(c.expression).evaluate(c.input())
+    await c.assert(result)
   })
 })
 

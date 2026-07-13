@@ -1,18 +1,26 @@
 import { isArray, isPlainObject } from 'lodash-es'
 import jsonataSafeResponse from './jsonataSafeResponse'
 import { toJsonataUrl } from './parseUrl'
+import { toJsonataDate } from './toJsonataDate'
 import { unwrapNative } from './unwrapNative'
 
 const STAMPED = Symbol('jsonataNativePropsStamped')
 
 // Own + enumerable so JSONata 2.2 can read it; configurable so re-stamping never
 // throws. Shadows the identical prototype getter — the value stays a real native.
+// On Cloudflare Workers, ArrayBuffer.byteLength is non-configurable and
+// defineProperty throws — swallow that so re-entering evaluate with a parquet
+// ArrayBuffer (destination/run_if context) does not abort the sync.
 function stampOwnProp(target: object, name: string, value: unknown) {
-  Object.defineProperty(target, name, {
-    value,
-    enumerable: true,
-    configurable: true,
-  })
+  try {
+    Object.defineProperty(target, name, {
+      value,
+      enumerable: true,
+      configurable: true,
+    })
+  } catch {
+    // leave prototype getter; JSONata may still not see it, but we must not throw
+  }
 }
 
 // Mirror a Blob/File/ArrayBuffer's getters as own props, in place, so
@@ -31,15 +39,19 @@ function stampNativeInstance(node: Blob | ArrayBuffer) {
   } else {
     stampOwnProp(node, 'byteLength', node.byteLength)
   }
-  Object.defineProperty(node, STAMPED, { value: true })
+  try {
+    Object.defineProperty(node, STAMPED, { value: true })
+  } catch {
+    // ignore — worst case we re-attempt stamps (also guarded)
+  }
 }
 
 /**
  * Make native inputs readable by JSONata 2.2 expressions (which only see own
  * properties): stamp Blob/File/ArrayBuffer in place, swap URL → the $parseUrl
- * shape (round-trips back to a real URL on the way out) and Response → a plain
- * mirror. Copy-on-write; already-wrapped values and opaque host objects
- * (Headers, Map, DateTime, …) are left alone.
+ * shape, Date → own-property method mirror (round-trips via NATIVE_DATE), and
+ * Response → a plain mirror. Copy-on-write; already-wrapped values and opaque
+ * host objects (Headers, Map, Luxon DateTime, …) are left alone.
  */
 function mirrorNativeInput<T>(value: T): T {
   if (!value || typeof value !== 'object') {
@@ -52,6 +64,9 @@ function mirrorNativeInput<T>(value: T): T {
   if (value instanceof Blob || value instanceof ArrayBuffer) {
     stampNativeInstance(value)
     return value
+  }
+  if (value instanceof Date) {
+    return toJsonataDate(value) as unknown as T
   }
   if (value instanceof URL) {
     return toJsonataUrl(value) as unknown as T
