@@ -8,8 +8,10 @@ import { toJsonataUrl } from '../functions/parseUrl'
  * mirrors native inputs (so expressions can read URL/Response/Blob/File/
  * ArrayBuffer/Date fields under JSONata 2.2's own-property-only lookup) and
  * unwraps the JSONata-safe native wrappers out of the result (so callers get
- * real instances back). These tests lock in the behaviour that lets host apps
- * upgrade to 3.x by only bumping the version — no per-call-site adaptation.
+ * real instances back). Date/Blob/File/ArrayBuffer are stamped in place;
+ * URL/Response are swapped for mirrors. These tests lock in the behaviour that
+ * lets host apps upgrade to 3.x by only bumping the version — no per-call-site
+ * adaptation.
  *
  * See the "native coverage matrix" describe below — every host-native type that
  * crosses evaluate must have a row. Missing a row is how Date/ArrayBuffer
@@ -209,26 +211,38 @@ describe('host boundary — Date (host `new Date()`, not Luxon)', () => {
     expect(result).toBe('2026-07-13T06:55:02.000Z')
   })
 
-  it('getTime works on a mirrored Date input', async () => {
+  it('getTime works on a stamped Date input', async () => {
     const started_at = new Date('2026-07-13T06:55:02.000Z')
     await expect(
       trutoJsonata('started_at.getTime()').evaluate({ started_at })
     ).resolves.toBe(started_at.getTime())
   })
 
-  it('a Date echoed through an expression comes back as a real Date', async () => {
+  it('a Date echoed through an expression stays the same real Date instance', async () => {
     const started_at = new Date('2026-07-13T06:55:02.000Z')
     const result = await trutoJsonata('started_at').evaluate({ started_at })
+    expect(result).toBe(started_at)
     expect(result).toBeInstanceOf(Date)
-    expect((result as Date).toISOString()).toBe('2026-07-13T06:55:02.000Z')
   })
 
-  it('does not mutate the host Date (copy-on-write mirror)', async () => {
+  it('stamps Date in place (same instance) so instanceof / isDate still work', async () => {
     const started_at = new Date('2026-07-13T06:55:02.000Z')
     const input = { started_at }
     await trutoJsonata('started_at.toISOString()').evaluate(input)
     expect(input.started_at).toBe(started_at)
     expect(input.started_at).toBeInstanceOf(Date)
+  })
+
+  it('stamped Date remains instanceof Date for mid-expression consumers', async () => {
+    // Wrapping as a plain object would break lodash isDate / instanceof inside
+    // $jsonToParquet and host-registered helpers — stamp must keep a real Date.
+    const at = new Date('2024-01-15T00:00:00.000Z')
+    const expr = trutoJsonata('$check(at)')
+    expr.registerFunction('check', (v: unknown) => v instanceof Date)
+    await expect(expr.evaluate({ at })).resolves.toBe(true)
+    await expect(
+      trutoJsonata('$jsonToParquet([{"id": 1, "at": at}])').evaluate({ at })
+    ).resolves.toBeInstanceOf(ArrayBuffer)
   })
 })
 
@@ -328,6 +342,17 @@ describe('host boundary — native coverage matrix', () => {
   it.each(cases)('$name is readable without throwing', async c => {
     const result = await trutoJsonata(c.expression).evaluate(c.input())
     await c.assert(result)
+  })
+})
+
+describe('host boundary — round trip', () => {
+  it('a URL echoed through an expression comes back as a real URL', async () => {
+    const result = await trutoJsonata('u').evaluate({
+      u: new URL('https://a.com/echo/path?k=v'),
+    })
+    expect(result).toBeInstanceOf(URL)
+    expect((result as URL).pathname).toBe('/echo/path')
+    expect((result as URL).searchParams.get('k')).toBe('v')
   })
 })
 

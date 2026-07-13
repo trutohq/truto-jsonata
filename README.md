@@ -133,14 +133,17 @@ The default entrypoint handles both for you. **`trutoJsonata(expr).evaluate(inpu
   `url.pathname`, `response.status`, `body.file.name`, `buffer.byteLength`,
   `started_at.toISOString()`, etc. (deep — natives nested in the input
   object/array are handled; the input is not mutated except for in-place,
-  non-destructive stamping of `Blob`/`File`/`ArrayBuffer`), and
+  non-destructive stamping of `Blob`/`File`/`ArrayBuffer`/`Date`; `URL`/
+  `Response` are swapped for readable mirrors), and
 - **unwraps native results** on the way out, so callers get back real
-  `ArrayBuffer`/`Blob`/`URL`/`Date`/`DateTime` instances that satisfy `instanceof`,
+  `ArrayBuffer`/`Blob`/`URL`/`DateTime` instances that satisfy `instanceof`,
   survive `structuredClone`/`cloneDeep`, and serialise as they did before 3.x.
+  (Host `Date` inputs are stamped in place and stay real `Date`s — no wrap/unwrap.)
 
 **Coverage (must stay complete):** `URL`, `Response`, `Blob`, `File`,
 `ArrayBuffer`, native `Date` (host `new Date()`, e.g. sync-job `started_at` —
-distinct from Luxon `$dtFromIso`), plus unwrap for custom-function returns.
+distinct from Luxon `$dtFromIso`; stamped in place so `instanceof` / `isDate`
+still work inside `$jsonToParquet`), plus unwrap for custom-function returns.
 Regression tests live in `src/__tests__/hostNativeBoundary.test.ts` (coverage
 matrix). When adding a new host-native type that expressions read via prototype
 getters/methods, extend the mirror **and** add a matrix row.

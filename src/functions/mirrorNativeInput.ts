@@ -1,7 +1,6 @@
 import { isArray, isPlainObject } from 'lodash-es'
 import jsonataSafeResponse from './jsonataSafeResponse'
 import { toJsonataUrl } from './parseUrl'
-import { toJsonataDate } from './toJsonataDate'
 import { unwrapNative } from './unwrapNative'
 
 const STAMPED = Symbol('jsonataNativePropsStamped')
@@ -23,6 +22,14 @@ function stampOwnProp(target: object, name: string, value: unknown) {
   }
 }
 
+function markStamped(node: object) {
+  try {
+    Object.defineProperty(node, STAMPED, { value: true })
+  } catch {
+    // ignore — worst case we re-attempt stamps (also guarded)
+  }
+}
+
 // Mirror a Blob/File/ArrayBuffer's getters as own props, in place, so
 // `body.file.name` / `data.size` / `buf.byteLength` work under JSONata 2.2.
 function stampNativeInstance(node: Blob | ArrayBuffer) {
@@ -39,19 +46,43 @@ function stampNativeInstance(node: Blob | ArrayBuffer) {
   } else {
     stampOwnProp(node, 'byteLength', node.byteLength)
   }
-  try {
-    Object.defineProperty(node, STAMPED, { value: true })
-  } catch {
-    // ignore — worst case we re-attempt stamps (also guarded)
+  markStamped(node)
+}
+
+// Host `new Date()` (e.g. sync_job_run.started_at) — stamp methods as own props
+// so JSONata 2.2 can call them, but keep the real Date (unlike URL/Response
+// wrappers). That preserves instanceof / lodash isDate for $jsonToParquet and
+// other custom functions that receive the value mid-expression.
+function stampDateInstance(date: Date) {
+  if ((date as unknown as Record<symbol, unknown>)[STAMPED]) {
+    return
   }
+  const methods = [
+    'toISOString',
+    'getTime',
+    'getFullYear',
+    'getMonth',
+    'getDate',
+    'getUTCFullYear',
+    'getUTCMonth',
+    'getUTCDate',
+    'getUTCHours',
+    'getUTCMinutes',
+    'getUTCSeconds',
+    'getUTCMilliseconds',
+  ] as const
+  for (const name of methods) {
+    stampOwnProp(date, name, date[name].bind(date))
+  }
+  markStamped(date)
 }
 
 /**
  * Make native inputs readable by JSONata 2.2 expressions (which only see own
- * properties): stamp Blob/File/ArrayBuffer in place, swap URL → the $parseUrl
- * shape, Date → own-property method mirror (round-trips via NATIVE_DATE), and
- * Response → a plain mirror. Copy-on-write; already-wrapped values and opaque
- * host objects (Headers, Map, Luxon DateTime, …) are left alone.
+ * properties): stamp Blob/File/ArrayBuffer/Date in place, swap URL → the
+ * $parseUrl shape and Response → a plain mirror. Copy-on-write for URL/Response;
+ * already-wrapped values and opaque host objects (Headers, Map, Luxon
+ * DateTime, …) are left alone.
  */
 function mirrorNativeInput<T>(value: T): T {
   if (!value || typeof value !== 'object') {
@@ -66,7 +97,8 @@ function mirrorNativeInput<T>(value: T): T {
     return value
   }
   if (value instanceof Date) {
-    return toJsonataDate(value) as unknown as T
+    stampDateInstance(value)
+    return value
   }
   if (value instanceof URL) {
     return toJsonataUrl(value) as unknown as T

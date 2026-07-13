@@ -3,10 +3,10 @@ import { unwrapNative } from './unwrapNative'
 
 /**
  * Recursively swap JSONata-safe native wrappers (from $blob, $jsonToParquet,
- * $parseUrl, $dtFromIso, host Date mirrors, …) back for the real
- * Blob/ArrayBuffer/URL/Date/DateTime they box, so a result survives instanceof,
- * structuredClone and JSON.stringify once it leaves JSONata. Copy-on-write —
- * plain-JSON results pass through untouched.
+ * $parseUrl, $dtFromIso, …) back for the real Blob/ArrayBuffer/URL/DateTime they
+ * box, so a result survives instanceof, structuredClone and JSON.stringify once
+ * it leaves JSONata. Copy-on-write — plain-JSON results pass through untouched.
+ * Host Dates are stamped in place (not wrapped), so they need no unwrap here.
  */
 function deepUnwrapNative<T = unknown>(value: T): T {
   const unwrapped = unwrapNative(value)
