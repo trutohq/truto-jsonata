@@ -276,10 +276,10 @@
     uuid "^11.1.0"
     zod "^3.25.76 || ^4"
 
-"@langchain/core@1.1.48":
-  version "1.1.48"
-  resolved "https://registry.yarnpkg.com/@langchain/core/-/core-1.1.48.tgz#dfe7f6a64b0e3e79e5357ed4b402c021ee315a7f"
-  integrity sha512-fQU6Guyb1pwc2fEplmA8FPbKfOMAofjnyJzExevro0FxEiuGHE18Ov/ZHmT9trWCDTZRI9eW1VIc6aChxV8pAQ==
+"@langchain/core@1.2.2":
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/@langchain/core/-/core-1.2.2.tgz#cfc9710eb7a09e8582d7a4a46e3afa03ae0f65cd"
+  integrity sha512-KfjEOT6sCg0vvItagfEtGpmrGoLMGfma4Affb5BGEqPmS2YR3AxW54pABSkhQlzCehTB+0BnLquAe1lGF4J9zQ==
   dependencies:
     "@cfworker/json-schema" "^4.0.2"
     "@standard-schema/spec" "^1.1.0"
