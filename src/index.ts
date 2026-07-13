@@ -10,9 +10,11 @@ export default function trutoJsonata(expression: string): Expression {
   const evaluate = expr.evaluate.bind(expr)
 
   // JSONata 2.2 only reads own properties and boxes native returns in wrappers.
-  // Mirror native inputs (URL/Response/File/Blob/ArrayBuffer) so expressions can
-  // read them, then unwrap the wrappers out of the result so callers get real
-  // instances back. Lets a host upgrade by only bumping the version.
+  // Mirror native inputs (URL/Response/File/Blob/ArrayBuffer/Date/DateTime/
+  // ReadableStream/typed arrays) so expressions can read them, then unwrap
+  // wrappers and normalize 2.2's null-prototype result objects so callers keep
+  // the 2.0 host contract.
+  // Lets a host upgrade by only bumping the version.
   function boundEvaluate(
     input: unknown,
     bindings?: Record<string, unknown>,
@@ -22,9 +24,15 @@ export default function trutoJsonata(expression: string): Expression {
     const safeBindings =
       bindings === undefined ? undefined : mirrorNativeInput(bindings)
     if (typeof callback === 'function') {
-      return evaluate(safeInput, safeBindings, (err: unknown, value: unknown) =>
-        callback(err, err ? value : deepUnwrapNative(value))
+      const result = evaluate(
+        safeInput,
+        safeBindings,
+        (err: unknown, value: unknown) =>
+          callback(err, err ? value : deepUnwrapNative(value))
       )
+      return result === undefined
+        ? undefined
+        : Promise.resolve(result).then(value => deepUnwrapNative(value))
     }
     return Promise.resolve(evaluate(safeInput, safeBindings)).then(value =>
       deepUnwrapNative(value)

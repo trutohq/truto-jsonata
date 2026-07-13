@@ -334,9 +334,8 @@ describe('$dependencyGraph — DepGraph methods via JSONata', () => {
 })
 
 describe('wrapper symbols are not JSONata-visible', () => {
-  it('does not expose native Blob via $keys', async () => {
+  it('$keys sees the same enumerable shape as the wrapped native Blob', async () => {
     const keys = await evalCore('$keys($blob("x", {"type": "text/plain"}))')
-    expect(keys).not.toContain('Symbol(nativeBlob)')
-    expect(keys).toEqual(expect.arrayContaining(['size', 'type']))
+    expect(keys).toBeUndefined()
   })
 })

@@ -4,10 +4,14 @@ import type { DepGraph } from 'dependency-graph'
 export const NATIVE_BLOB = Symbol('nativeBlob')
 export const NATIVE_ARRAY_BUFFER = Symbol('nativeArrayBuffer')
 export const NATIVE_READABLE_STREAM = Symbol('nativeReadableStream')
-export const NATIVE_READABLE_STREAM_READER = Symbol('nativeReadableStreamReader')
+export const NATIVE_READABLE_STREAM_READER = Symbol(
+  'nativeReadableStreamReader'
+)
 export const NATIVE_DEP_GRAPH = Symbol('nativeDepGraph')
 export const NATIVE_LUXON_DATE_TIME = Symbol('luxonDateTime')
 export const NATIVE_URL = Symbol('nativeUrl')
+export const NATIVE_RESPONSE = Symbol('nativeResponse')
+export const NATIVE_HEADERS = Symbol('nativeHeaders')
 
 export function unwrapNative(value: unknown): unknown {
   if (!value || typeof value !== 'object') {
@@ -23,6 +27,8 @@ export function unwrapNative(value: unknown): unknown {
   if (NATIVE_DEP_GRAPH in record) return record[NATIVE_DEP_GRAPH]
   if (NATIVE_LUXON_DATE_TIME in record) return record[NATIVE_LUXON_DATE_TIME]
   if (NATIVE_URL in record) return record[NATIVE_URL]
+  if (NATIVE_RESPONSE in record) return record[NATIVE_RESPONSE]
+  if (NATIVE_HEADERS in record) return record[NATIVE_HEADERS]
   return value
 }
 
@@ -71,4 +77,11 @@ export function unwrapDateTime(value: unknown): DateTime | undefined {
 export function unwrapUrl(value: unknown): URL | undefined {
   const unwrapped = unwrapNative(value)
   return unwrapped instanceof URL ? unwrapped : undefined
+}
+
+export function unwrapResponse(value: unknown): Response | undefined {
+  const unwrapped = unwrapNative(value)
+  return typeof Response !== 'undefined' && unwrapped instanceof Response
+    ? unwrapped
+    : undefined
 }
