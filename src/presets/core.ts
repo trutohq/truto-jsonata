@@ -44,6 +44,7 @@ import sortNodes from '../functions/sortNodes'
 import stringifyQuery from '../functions/stringifyQuery'
 import teeStream from '../functions/teeStream'
 import toNumber from '../functions/toNumber'
+import { unwrapNative } from '../functions/unwrapNative'
 import uuid from '../functions/uuid'
 import zipSqlResponse from '../functions/zipSqlResponse'
 
@@ -54,6 +55,78 @@ import zipSqlResponse from '../functions/zipSqlResponse'
 type JsonataCallback = ((...args: unknown[]) => unknown) & {
   arity?: number
   implementation?: (...args: unknown[]) => unknown
+}
+
+type JsonataFunction = {
+  _jsonata_function?: boolean
+  _jsonata_lambda?: boolean
+}
+
+function isJsonataFunction(value: unknown): boolean {
+  if (typeof value === 'function') return true
+  if (!value || typeof value !== 'object') return false
+  const func = value as JsonataFunction
+  return func._jsonata_function === true || func._jsonata_lambda === true
+}
+
+// JSONata 2.1.1 stopped rounding integer values to 15 significant digits in
+// $string. Existing mappings ran against 2.0.6, so preserve that output exactly
+// at the truto-jsonata boundary (notably for large numeric IDs).
+function legacyString(arg: unknown, prettify = false): string | undefined {
+  const rawArg = unwrapNative(arg)
+  if (rawArg === undefined) return undefined
+  if (typeof rawArg === 'string') return rawArg
+  if (isJsonataFunction(rawArg)) return ''
+  if (typeof rawArg === 'number' && !Number.isFinite(rawArg)) {
+    throw { code: 'D3001', value: rawArg, stack: new Error().stack }
+  }
+
+  const outerWrapped = rawArg as unknown[] & { outerWrapper?: boolean }
+  const value =
+    Array.isArray(rawArg) && outerWrapped.outerWrapper ? rawArg[0] : rawArg
+
+  return JSON.stringify(
+    value,
+    (_key, nested: unknown) => {
+      const rawNested = unwrapNative(nested)
+      if (typeof rawNested === 'number' && !Number.isNaN(rawNested)) {
+        if (!Number.isFinite(rawNested)) {
+          throw { code: 'D1001', value: rawNested, stack: new Error().stack }
+        }
+        return Number(rawNested.toPrecision(15))
+      }
+      return isJsonataFunction(rawNested) ? '' : rawNested
+    },
+    prettify ? 2 : 0
+  )
+}
+
+function legacyKeys(arg: unknown): string | string[] | undefined {
+  const rawArg = unwrapNative(arg)
+  const result: string[] = []
+  if (Array.isArray(rawArg)) {
+    const keys = new Set<string>()
+    for (const item of rawArg) {
+      const itemKeys = legacyKeys(item)
+      if (Array.isArray(itemKeys)) {
+        itemKeys.forEach(key => keys.add(key))
+      } else if (itemKeys !== undefined) {
+        keys.add(itemKeys)
+      }
+    }
+    result.push(...keys)
+  } else if (
+    rawArg !== null &&
+    typeof rawArg === 'object' &&
+    !isJsonataFunction(rawArg)
+  ) {
+    result.push(...Object.keys(rawArg))
+  }
+  return result.length === 0
+    ? undefined
+    : result.length === 1
+    ? result[0]
+    : result
 }
 
 function callbackArity(func: JsonataCallback): number {
@@ -108,6 +181,8 @@ function effectiveBoolean(arg: unknown): boolean {
 }
 
 export function registerCoreExtensions(expression: Expression): Expression {
+  expression.registerFunction('string', legacyString, '<x-b?:s>')
+  expression.registerFunction('keys', legacyKeys, '<x-:a<s>>')
   expression.registerFunction('base64decode', base64decode)
   expression.registerFunction('base64encode', base64encode)
   expression.registerFunction('base64ToBlob', base64ToBlob)
