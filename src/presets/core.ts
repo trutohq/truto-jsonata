@@ -10,6 +10,7 @@ import {
   flattenDeep,
   flattenDepth,
   groupBy,
+  isArray,
   join,
   keyBy,
   omit,
@@ -83,7 +84,7 @@ function legacyString(arg: unknown, prettify = false): string | undefined {
 
   const outerWrapped = rawArg as unknown[] & { outerWrapper?: boolean }
   const value =
-    Array.isArray(rawArg) && outerWrapped.outerWrapper ? rawArg[0] : rawArg
+    isArray(rawArg) && outerWrapped.outerWrapper ? rawArg[0] : rawArg
 
   return JSON.stringify(
     value,
@@ -104,11 +105,11 @@ function legacyString(arg: unknown, prettify = false): string | undefined {
 function legacyKeys(arg: unknown): string | string[] | undefined {
   const rawArg = unwrapNative(arg)
   const result: string[] = []
-  if (Array.isArray(rawArg)) {
+  if (isArray(rawArg)) {
     const keys = new Set<string>()
     for (const item of rawArg) {
       const itemKeys = legacyKeys(item)
-      if (Array.isArray(itemKeys)) {
+      if (isArray(itemKeys)) {
         itemKeys.forEach(key => keys.add(key))
       } else if (itemKeys !== undefined) {
         keys.add(itemKeys)
@@ -160,7 +161,7 @@ function callbackArgs(
 // and non-finite numbers throw D1001 exactly like jsonata's isNumeric().
 function effectiveBoolean(arg: unknown): boolean {
   if (arg === undefined || arg === null) return false
-  if (Array.isArray(arg)) return arg.some(effectiveBoolean)
+  if (isArray(arg)) return arg.some(effectiveBoolean)
   switch (typeof arg) {
     case 'boolean':
       return arg
@@ -246,8 +247,8 @@ export function registerCoreExtensions(expression: Expression): Expression {
       return result.length === 0
         ? undefined
         : result.length === 1
-          ? result[0]
-          : result
+        ? result[0]
+        : result
     },
     '<o-f:a>'
   )
@@ -325,12 +326,9 @@ export function registerCoreExtensions(expression: Expression): Expression {
   expression.registerFunction('flattenDeep', function (arr: any) {
     return flattenDeep(castArray(arr))
   })
-  expression.registerFunction(
-    'flattenDepth',
-    function (arr: any, depth: any) {
-      return flattenDepth(castArray(arr), depth)
-    }
-  )
+  expression.registerFunction('flattenDepth', function (arr: any, depth: any) {
+    return flattenDepth(castArray(arr), depth)
+  })
 
   return expression
 }

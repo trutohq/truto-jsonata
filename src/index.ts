@@ -11,9 +11,9 @@ export default function trutoJsonata(expression: string): Expression {
 
   // JSONata 2.2 only reads own properties and boxes native returns in wrappers.
   // Mirror native inputs (URL/Response/File/Blob/ArrayBuffer/Date/DateTime/
-  // ReadableStream) so expressions can read them, then unwrap wrappers and
-  // normalize 2.2's null-prototype result objects so callers keep the 2.0 host
-  // contract.
+  // ReadableStream/typed arrays) so expressions can read them, then unwrap
+  // wrappers and normalize 2.2's null-prototype result objects so callers keep
+  // the 2.0 host contract.
   // Lets a host upgrade by only bumping the version.
   function boundEvaluate(
     input: unknown,

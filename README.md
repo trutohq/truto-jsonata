@@ -135,9 +135,10 @@ The default entrypoint handles both for you. **`trutoJsonata(expr).evaluate(inpu
   `started_at.toISOString()`, `stream.locked`, etc. (deep and cycle-safe —
   natives nested in the input
   object/array are handled; the input is not mutated except for in-place,
-  non-destructive stamping of `Blob`/`File`/`ArrayBuffer`/typed arrays/
-  `DataView`/`Date`; `URL`/`Response`/`ReadableStream` are swapped for readable
-  mirrors; frozen native values use a wrapper or same-type clone), and
+  non-destructive stamping of `Blob`/`File`/`ArrayBuffer`/`Date`; typed arrays
+  and `DataView` are cloned before stamping; `URL`/`Response`/`ReadableStream`
+  are swapped for readable mirrors; frozen native values use a wrapper or
+  same-type clone), and
 - **unwraps native results** on the way out, so callers get back real
   `ArrayBuffer`/`Blob`/`URL`/`Response`/`ReadableStream`/`DateTime` instances
   that satisfy `instanceof` and retain their host behavior; cloneable native

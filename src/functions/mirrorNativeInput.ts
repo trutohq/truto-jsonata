@@ -10,10 +10,10 @@ import { unwrapNative } from './unwrapNative'
 
 const STAMPED = Symbol('jsonataNativePropsStamped')
 
-// Own + enumerable so JSONata 2.2 can read it; configurable so re-stamping never
-// throws. Shadows the identical prototype getter — the value stays a real native.
-// On Cloudflare Workers, ArrayBuffer.byteLength is non-configurable and
-// defineProperty throws — swallow that so re-entering evaluate with a parquet
+// Own + non-enumerable so JSONata 2.2 can read it by name without exposing it via
+// `.*` / `$keys` (matching 2.0 prototype visibility). Configurable so re-stamping
+// never throws. On Cloudflare Workers, ArrayBuffer.byteLength is non-configurable
+// and defineProperty throws — swallow that so re-entering evaluate with a parquet
 // ArrayBuffer (destination/run_if context) does not abort the sync.
 function stampOwnProp(target: object, name: string, value: unknown): boolean {
   try {
@@ -54,15 +54,20 @@ function stampNativeInstance(node: Blob | ArrayBuffer): unknown {
   } else {
     readable = stampOwnProp(node, 'byteLength', node.byteLength)
   }
+  if (!readable) {
+    // Do not mark STAMPED on a failed stamp — otherwise a later evaluate with
+    // the same Workers ArrayBuffer would skip the wrapper fallback and stay
+    // unreadable.
+    if (node instanceof ArrayBuffer) return toJsonataArrayBuffer(node)
+    return toJsonataBlob(
+      node,
+      typeof File !== 'undefined' && node instanceof File
+        ? { name: node.name, lastModified: node.lastModified }
+        : undefined
+    )
+  }
   markStamped(node)
-  if (readable) return node
-  if (node instanceof ArrayBuffer) return toJsonataArrayBuffer(node)
-  return toJsonataBlob(
-    node,
-    typeof File !== 'undefined' && node instanceof File
-      ? { name: node.name, lastModified: node.lastModified }
-      : undefined
-  )
+  return node
 }
 
 function cloneArrayBufferView(view: ArrayBufferView): ArrayBufferView {
@@ -73,15 +78,17 @@ function cloneArrayBufferView(view: ArrayBufferView): ArrayBufferView {
     )
     return new DataView(buffer)
   }
-  const View = view.constructor as new (source: ArrayBufferView) => ArrayBufferView
+  const View = view.constructor as new (
+    source: ArrayBufferView
+  ) => ArrayBufferView
   return new View(view)
 }
 
 function stampArrayBufferView(view: ArrayBufferView): ArrayBufferView {
-  const target = Object.isExtensible(view) ? view : cloneArrayBufferView(view)
-  if ((target as unknown as Record<symbol, unknown>)[STAMPED]) {
-    return target
-  }
+  // Always clone. Unlike Blob/ArrayBuffer/Date, TypedArrays get a large set of
+  // own method props for JSONata readability; keep that decoration off the
+  // caller's instance.
+  const target = cloneArrayBufferView(view)
 
   let prototype = Object.getPrototypeOf(target)
   while (prototype && prototype !== Object.prototype) {
@@ -106,12 +113,13 @@ function stampArrayBufferView(view: ArrayBufferView): ArrayBufferView {
             ? stampArrayBufferView(result)
             : result
         })
+      } else if (name === 'buffer' && member instanceof ArrayBuffer) {
+        // Best-effort stamp for bytes.buffer.byteLength, but never replace the
+        // view's buffer with a wrapper object.
+        stampNativeInstance(member)
+        stampOwnProp(target, name, member)
       } else {
-        stampOwnProp(
-          target,
-          name,
-          member instanceof ArrayBuffer ? stampNativeInstance(member) : member
-        )
+        stampOwnProp(target, name, member)
       }
     }
     prototype = Object.getPrototypeOf(prototype)

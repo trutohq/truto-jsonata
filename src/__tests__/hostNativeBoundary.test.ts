@@ -316,6 +316,28 @@ describe('host boundary — ArrayBuffer re-entry (parquet → destination contex
       buffer
     )
   })
+
+  it('keeps failed ArrayBuffer stamps readable across repeated evaluate calls', async () => {
+    const buffer = Object.freeze(new ArrayBuffer(8))
+    await expect(
+      trutoJsonata('buffer.byteLength').evaluate({ buffer })
+    ).resolves.toBe(8)
+    await expect(
+      trutoJsonata('buffer.byteLength').evaluate({ buffer })
+    ).resolves.toBe(8)
+  })
+})
+
+describe('host boundary — typed arrays / DataView', () => {
+  it('does not permanently decorate the host TypedArray instance', async () => {
+    const bytes = new Uint8Array([7, 8, 9])
+    const before = Object.getOwnPropertyNames(bytes)
+    await expect(
+      trutoJsonata('bytes.slice(1).length').evaluate({ bytes })
+    ).resolves.toBe(2)
+    expect(Object.getOwnPropertyNames(bytes)).toEqual(before)
+    expect(bytes.buffer).toBeInstanceOf(ArrayBuffer)
+  })
 })
 
 describe('host boundary — cyclic inputs/results', () => {
