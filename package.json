@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "3.0.6",
+  "version": "3.0.7",
   "description": "Truto extension of jsonata",
   "repository": "https://github.com/trutohq/truto-jsonata.git",
   "source": "src/index.ts",
@@ -53,10 +53,10 @@
     "yarn": "1.22.22"
   },
   "resolutions": {
-    "brace-expansion": "npm:brace-expansion@1.1.15",
+    "brace-expansion": "npm:brace-expansion@1.1.18",
     "vite": "npm:vite@6.4.3",
     "picomatch": "npm:picomatch@4.0.4",
-    "postcss": "npm:postcss@8.5.15",
+    "postcss": "npm:postcss@8.5.23",
     "langsmith": "npm:langsmith@0.7.3",
     "uuid": "npm:uuid@11.1.1",
     "qs": "npm:qs@6.15.2",
