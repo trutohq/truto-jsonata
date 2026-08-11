@@ -418,7 +418,11 @@ const NATIVE_CASES: CompatibilityCase[] = [
   },
 ]
 
-describe('published 2.0.1 compatibility oracle', () => {
+// Skipped: the live @truto/truto-jsonata@2.0.1 oracle depends on vulnerable
+// jsonata@2.0.6 ($toMillis DoS). yarn resolutions force jsonata@2.2.1 for the
+// Sprinto advisory, which invalidates this oracle. Re-enable with frozen
+// fixtures (not a live vulnerable jsonata) if regression coverage is needed.
+describe.skip('published 2.0.1 compatibility oracle', () => {
   it.each([
     ...LANGUAGE_CASES,
     ...STRING_CASES,
