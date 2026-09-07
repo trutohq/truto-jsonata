@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Truto extension of jsonata",
   "repository": "https://github.com/trutohq/truto-jsonata.git",
   "source": "src/index.ts",
@@ -85,6 +85,7 @@
     "@langchain/textsplitters": "1.0.1",
     "@mixmark-io/domino": "2.2.0",
     "@truto/turndown-plugin-gfm": "1.0.2",
+    "aws4fetch": "1.0.20",
     "dependency-graph": "1.0.0",
     "dice-coefficient": "2.1.1",
     "hyparquet-writer": "0.13.0",
