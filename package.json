@@ -110,6 +110,7 @@
     "types": "tsc -p tsconfig.build.json",
     "check": "tsc --noEmit",
     "prepublishOnly": "yarn test && yarn build && yarn types",
-    "test": "vitest"
+    "test": "vitest run",
+    "test:watch": "vitest"
   }
 }
