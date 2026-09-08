@@ -3,7 +3,7 @@
 # Two release lines share this one file:
 #   main  -> the current major, published to the `latest` dist-tag
 #   2.x   -> the maintenance line for consumers still on the jsonata 2.0.6 engine,
-#            published to the `v2` dist-tag
+#            published to the `v2-lts` dist-tag
 #
 # The dist-tag is derived from the VERSION IN package.json, never from the branch name.
 # That is deliberate: deriving it from the branch means a 2.x version accidentally landing
@@ -92,7 +92,17 @@ jobs:
           if [ "$HIGHEST" = "$VERSION" ] && [ "$VERSION" != "$LATEST" ]; then
             TAG="latest"
           else
-            TAG="v$MAJOR"
+            # npm rejects any dist-tag that parses as a valid semver range, so the
+            # obvious names are all unusable: `v2`, `2.x` and `v2.x` every one parse
+            # as >=2.0.0 <3.0.0-0. The `-lts` suffix makes it unambiguous.
+            TAG="v$MAJOR-lts"
+          fi
+
+          # Fail here rather than at publish time, where the error is a bare
+          # "Tag name must not be a valid SemVer range" after the build has run.
+          if npx --yes semver@7 --range "$TAG" >/dev/null 2>&1; then
+            echo "::error::dist-tag '$TAG' parses as a semver range; npm will reject it."
+            exit 1
           fi
 
           echo "publish=true" >> "$GITHUB_OUTPUT"
