@@ -137,6 +137,7 @@ Each preset is bundled independently for tree-shaking — unused presets don't i
 | Function | Description |
 |---|---|
 | [`$base64encode()`](#base64encode) | Encode a string, ArrayBuffer, or Uint8Array to Base64 |
+| [`$awsSigV4()`](#awssigv4) | Sign a request with AWS Signature Version 4 |
 | [`$base64decode()`](#base64decode) | Decode a Base64 string |
 | [`$base64ToBlob()`](#base64toblob) | Convert Base64 to a Blob |
 | [`$blob()`](#blob) | Create a Blob from content |
@@ -1322,6 +1323,44 @@ expression6.evaluate({ text: text6, algorithm: algorithm6, stringType: stringTyp
   // Output: "odDG6D8CcyfYRgYj9KxYpg"
 });
 
+```
+
+</details>
+
+<a name="awssigv4"></a>
+
+
+<details>
+<summary>awsSigV4(method, url, headers, body, credentials, service, region)</summary>
+
+Signs a request with AWS Signature Version 4 and returns a plain object of headers to send. The result includes the headers you passed in plus the ones SigV4 adds (`authorization`, `x-amz-date` and, when `credentials.sessionToken` is set, `x-amz-security-token`), so `$merge` it over your existing headers.
+
+`body` must already be a string — serialise objects with `$string()` first.
+
+**Example:**
+
+```javascript
+import trutoJsonata from '@truto/truto-jsonata';
+
+const expression = trutoJsonata(
+  "$merge([headers, $awsSigV4('POST', url, headers, $string(payload), credentials, 'execute-api', 'us-east-1')])"
+);
+expression.evaluate({
+  url: 'https://example.execute-api.us-east-1.amazonaws.com/prod/items',
+  headers: { 'content-type': 'application/json' },
+  payload: { name: 'widget' },
+  credentials: { accessKeyId: 'AKID...', secretAccessKey: 'secret...' },
+}).then(result => {
+  console.log(result);
+  /*
+  Output:
+  {
+    "content-type": "application/json",
+    "authorization": "AWS4-HMAC-SHA256 Credential=AKID.../20240101/us-east-1/execute-api/aws4_request, SignedHeaders=host;x-amz-date, Signature=...",
+    "x-amz-date": "20240101T000000Z"
+  }
+  */
+});
 ```
 
 </details>

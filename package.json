@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Truto extension of jsonata",
   "repository": "https://github.com/trutohq/truto-jsonata.git",
   "source": "src/index.ts",
@@ -53,8 +53,12 @@
     "yarn": "1.22.22"
   },
   "resolutions": {
-    "brace-expansion": "npm:brace-expansion@1.1.12",
-    "vite": "npm:vite@6.4.2"
+    "brace-expansion": "npm:brace-expansion@1.1.18",
+    "browserslist": "npm:browserslist@4.28.9",
+    "js-yaml": "npm:js-yaml@4.3.2",
+    "nanoid": "npm:nanoid@3.3.18",
+    "postcss": "npm:postcss@8.5.23",
+    "vite": "npm:vite@6.4.3"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "4.20241018.0",
@@ -85,6 +89,7 @@
     "@langchain/textsplitters": "1.0.1",
     "@mixmark-io/domino": "2.2.0",
     "@truto/turndown-plugin-gfm": "1.0.2",
+    "aws4fetch": "1.0.20",
     "dependency-graph": "1.0.0",
     "dice-coefficient": "2.1.1",
     "hyparquet-writer": "0.13.0",
@@ -98,7 +103,7 @@
     "mime": "4.0.4",
     "p-map": "7.0.3",
     "p-retry": "6.2.1",
-    "qs": "6.15.2",
+    "qs": "6.16.0",
     "turndown": "7.2.0",
     "vitest-fetch-mock": "0.3.0",
     "xml-js": "1.6.11"
@@ -109,6 +114,7 @@
     "types": "tsc -p tsconfig.build.json",
     "check": "tsc --noEmit",
     "prepublishOnly": "yarn test && yarn build && yarn types",
-    "test": "vitest"
+    "test": "vitest run",
+    "test:watch": "vitest"
   }
 }

@@ -1,26 +1,151 @@
-# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
-# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+# Publishes @truto/truto-jsonata to npm.
+#
+# Two release lines share this one file:
+#   main  -> the current major, published to the `latest` dist-tag
+#   2.x   -> the maintenance line for consumers still on the jsonata 2.0.6 engine,
+#            published to the `v2` dist-tag
+#
+# The dist-tag is derived from the VERSION IN package.json, never from the branch name.
+# That is deliberate: deriving it from the branch means a 2.x version accidentally landing
+# on main would be published as `latest` and drag every consumer backwards. Deriving it
+# from the version makes that impossible.
+#
+# Runs are labelled by version series (2.x, 3.x, ...). The `plan` job resolves the series
+# from package.json and the `publish` job takes its display name from it, so the label in
+# the Actions UI is the real shipped series rather than a guess from the branch name.
 
-name: Node.js Package
+name: npm publish
+
+# run-name is evaluated before any job runs, so it cannot read package.json. It shows the
+# branch, which is always true. The authoritative series is the `publish` job's name below.
+run-name: npm publish · ${{ github.ref_name }}
 
 on:
   push:
     branches:
       - main
+      - '2.x'
+
+concurrency:
+  group: npm-publish-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  publish-npm:
+  # Resolve what would be published, and under which dist-tag, before doing anything.
+  plan:
+    name: plan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      package: ${{ steps.resolve.outputs.package }}
+      version: ${{ steps.resolve.outputs.version }}
+      series: ${{ steps.resolve.outputs.series }}
+      tag: ${{ steps.resolve.outputs.tag }}
+      publish: ${{ steps.resolve.outputs.publish }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           registry-url: https://registry.npmjs.org/
-      - uses: oven-sh/setup-bun@v1
+
+      - id: resolve
+        name: Resolve version, series and dist-tag
+        run: |
+          set -euo pipefail
+
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          MAJOR=${VERSION%%.*}
+          SERIES="${MAJOR}.x"
+
+          echo "package=$NAME"   >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "series=$SERIES"   >> "$GITHUB_OUTPUT"
+
+          # Already on the registry? Nothing to do. This makes a push to a release
+          # branch that does not bump the version a clean no-op instead of a red build.
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "tag=" >> "$GITHUB_OUTPUT"
+            echo "::notice::$NAME@$VERSION is already published. Nothing to do."
+            {
+              echo "### $SERIES — skipped"
+              echo ""
+              echo "| | |"
+              echo "|---|---|"
+              echo "| series | \`$SERIES\` |"
+              echo "| branch | \`${{ github.ref_name }}\` |"
+              echo "| package | \`$NAME@$VERSION\` |"
+              echo "| reason | already on the registry |"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          LATEST=$(npm view "$NAME" dist-tags.latest 2>/dev/null || echo "0.0.0")
+
+          # `latest` only ever moves forward. Any version that does not sort above the
+          # current `latest` goes to a major-scoped tag (v2, v3, ...) instead.
+          HIGHEST=$(printf '%s\n%s\n' "$VERSION" "$LATEST" | sort -V | tail -1)
+          if [ "$HIGHEST" = "$VERSION" ] && [ "$VERSION" != "$LATEST" ]; then
+            TAG="latest"
+          else
+            TAG="v$MAJOR"
+          fi
+
+          echo "publish=true" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG"     >> "$GITHUB_OUTPUT"
+          echo "::notice::Publishing $NAME@$VERSION ($SERIES) to dist-tag '$TAG' (current latest: $LATEST)"
+          {
+            echo "### $SERIES — publishing \`$VERSION\` to \`$TAG\`"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| series | \`$SERIES\` |"
+            echo "| branch | \`${{ github.ref_name }}\` |"
+            echo "| version | \`$VERSION\` |"
+            echo "| dist-tag | \`$TAG\` |"
+            echo "| latest before | \`$LATEST\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # Job name is the resolved series, so the Actions UI reads "3.x" / "2.x" from the
+  # actual package.json rather than inferring it from the branch.
+  publish:
+    name: ${{ needs.plan.outputs.series }}
+    needs: plan
+    if: needs.plan.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org/
+
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      - run: yarn install
-      - run: npm publish
+
+      - run: yarn install --frozen-lockfile
+
+      # Belt and braces: a maintenance branch must never be able to claim `latest`,
+      # even if the logic above is later changed.
+      - name: Guard — maintenance branch cannot publish to latest
+        if: github.ref != 'refs/heads/main' && needs.plan.outputs.tag == 'latest'
+        run: |
+          echo "::error::Refusing to publish ${{ needs.plan.outputs.version }} to 'latest' from ${{ github.ref }}."
+          exit 1
+
+      - name: Publish ${{ needs.plan.outputs.version }} to ${{ needs.plan.outputs.tag }}
+        run: npm publish --tag "${{ needs.plan.outputs.tag }}"
         env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+          NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
+          CI: 'true'
+
+      - name: Verify dist-tags
+        run: npm view "${{ needs.plan.outputs.package }}" dist-tags
