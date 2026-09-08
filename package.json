@@ -90,7 +90,7 @@
   },
   "dependencies": {
     "@json2csv/plainjs": "7.0.6",
-    "@langchain/core": "1.1.48",
+    "@langchain/core": "1.2.2",
     "@langchain/textsplitters": "1.0.1",
     "@mixmark-io/domino": "2.2.0",
     "@truto/turndown-plugin-gfm": "1.0.2",
