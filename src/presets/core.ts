@@ -18,6 +18,7 @@ import {
   pick,
   values,
 } from 'lodash-es'
+import awsSigV4 from '../functions/awsSigV4'
 import base64decode from '../functions/base64decode'
 import base64encode from '../functions/base64encode'
 import base64ToBlob from '../functions/base64ToBlob'
@@ -184,6 +185,7 @@ function effectiveBoolean(arg: unknown): boolean {
 export function registerCoreExtensions(expression: Expression): Expression {
   expression.registerFunction('string', legacyString, '<x-b?:s>')
   expression.registerFunction('keys', legacyKeys, '<x-:a<s>>')
+  expression.registerFunction('awsSigV4', awsSigV4)
   expression.registerFunction('base64decode', base64decode)
   expression.registerFunction('base64encode', base64encode)
   expression.registerFunction('base64ToBlob', base64ToBlob)
