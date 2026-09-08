@@ -10,7 +10,12 @@
 # on main would be published as `latest` and drag every consumer backwards. Deriving it
 # from the version makes that impossible.
 
-name: Publish to npm
+name: npm publish
+
+# The run name carries the branch, so the two release lines are told apart at a
+# glance in the Actions list. The resolved dist-tag lands in the job summary,
+# because it is derived from the version and is not knowable until the job runs.
+run-name: npm publish · ${{ github.ref_name }}
 
 on:
   push:
@@ -24,6 +29,7 @@ concurrency:
 
 jobs:
   publish:
+    name: publish (${{ github.ref_name }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -59,6 +65,15 @@ jobs:
           if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
             echo "publish=false" >> "$GITHUB_OUTPUT"
             echo "::notice::$NAME@$VERSION is already published. Nothing to do."
+            {
+              echo "### npm publish — skipped"
+              echo ""
+              echo "| | |"
+              echo "|---|---|"
+              echo "| branch | \`${{ github.ref_name }}\` |"
+              echo "| package | \`$NAME@$VERSION\` |"
+              echo "| reason | already on the registry |"
+            } >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
@@ -76,6 +91,16 @@ jobs:
           echo "publish=true" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG"     >> "$GITHUB_OUTPUT"
           echo "::notice::Publishing $NAME@$VERSION to dist-tag '$TAG' (current latest: $LATEST)"
+          {
+            echo "### npm publish — $NAME@$VERSION → \`$TAG\`"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| branch | \`${{ github.ref_name }}\` |"
+            echo "| version | \`$VERSION\` |"
+            echo "| dist-tag | \`$TAG\` |"
+            echo "| latest before | \`$LATEST\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # Belt and braces: a maintenance branch must never be able to claim `latest`,
       # even if the logic above is later changed.
@@ -85,7 +110,7 @@ jobs:
           echo "::error::Refusing to publish ${{ steps.plan.outputs.version }} to 'latest' from ${{ github.ref }}."
           exit 1
 
-      - name: Publish
+      - name: Publish ${{ steps.plan.outputs.version }} to ${{ steps.plan.outputs.tag }}
         if: steps.plan.outputs.publish == 'true'
         run: npm publish --tag "${{ steps.plan.outputs.tag }}"
         env:
