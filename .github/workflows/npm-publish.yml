@@ -129,6 +129,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      # Trusted publishing: npm exchanges the GitHub OIDC token for a short-lived
+      # publish token, so no NPM_TOKEN secret is needed.
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -136,6 +139,9 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org/
+
+      - name: Update npm (trusted publishing needs npm 11.5.1+)
+        run: npm install -g npm@latest
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -154,7 +160,6 @@ jobs:
       - name: Publish ${{ needs.plan.outputs.version }} to ${{ needs.plan.outputs.tag }}
         run: npm publish --tag "${{ needs.plan.outputs.tag }}"
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
           CI: 'true'
 
       - name: Verify dist-tags
