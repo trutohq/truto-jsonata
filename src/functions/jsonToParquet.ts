@@ -61,7 +61,10 @@ function columnSourceFor(
 
   if (hasNested) {
     const jsonData = map(data, (cell) => {
-      if (isNull(cell)) return null
+      // Pass undefined, not null. hyparquet-writer 0.13 writes a null JSON cell
+      // as the bytes `null` while also marking the row null, which shifts every
+      // later value in the column. It skips undefined.
+      if (isNull(cell)) return undefined
       if (isString(cell)) return cell
       return JSON.stringify(cell)
     })

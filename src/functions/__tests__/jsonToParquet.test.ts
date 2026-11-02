@@ -106,6 +106,32 @@ describe('jsonToParquet', () => {
       expect(typeof rows[0].tags).toBe('string')
       expect(JSON.parse(rows[0].tags as string)).toEqual(['x', 'y'])
     })
+
+    it('keeps rows aligned when a JSON column has nulls or missing keys', async () => {
+      const buf = jsonToParquet(
+        [
+          { id: 1, tags: [1, 2] },
+          { id: 2, tags: null },
+          { id: 3, tags: [] },
+          { id: 4 },
+          { id: 5, tags: [3, null, 4] },
+          { id: 6, tags: [null] },
+        ],
+        baseOpts
+      )
+      const rows = await parquetReadObjects({
+        file: buf,
+        rowFormat: 'object',
+      })
+      expect(rows).toEqual([
+        { id: 1, tags: '[1,2]' },
+        { id: 2, tags: null },
+        { id: 3, tags: '[]' },
+        { id: 4, tags: null },
+        { id: 5, tags: '[3,null,4]' },
+        { id: 6, tags: '[null]' },
+      ])
+    })
   })
 
   describe('options', () => {
