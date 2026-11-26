@@ -50,14 +50,26 @@ import { unwrapNative } from '../functions/unwrapNative'
 import uuid from '../functions/uuid'
 import zipSqlResponse from '../functions/zipSqlResponse'
 
-// Callbacks reach registered functions as jsonata-wrapped JS functions
+// Callbacks usually reach registered functions as jsonata-wrapped JS functions
 // carrying the declared parameter count in `arity` (lambdas) or
 // `implementation.length` (registered functions). `length` on the wrapper
 // itself is always 0, so it is only a last-resort fallback.
-type JsonataCallback = ((...args: unknown[]) => unknown) & {
+// Inside a user-defined `function(...)` body jsonata passes the raw procedure
+// object instead: a lambda (`_jsonata_lambda`, its own `apply(self, args)` and
+// an `arguments` list) or a registered function (`implementation`). Neither is
+// callable, so `invokeCallback` calls them the way jsonata's builtins do.
+type JsonataCallable = ((...args: unknown[]) => unknown) & {
   arity?: number
   implementation?: (...args: unknown[]) => unknown
 }
+type JsonataProcedure = {
+  arity?: number
+  implementation?: (...args: unknown[]) => unknown
+  signature?: { validate?: (args: unknown[], context: unknown) => unknown[] }
+  arguments?: unknown[]
+  apply?: (self: unknown, args: unknown[]) => unknown
+}
+type JsonataCallback = JsonataCallable | JsonataProcedure
 
 type JsonataFunction = {
   _jsonata_function?: boolean
@@ -136,7 +148,33 @@ function callbackArity(func: JsonataCallback): number {
   if (typeof func.implementation === 'function') {
     return func.implementation.length
   }
-  return func.length
+  if (typeof func === 'function') return func.length
+  return Array.isArray(func.arguments) ? func.arguments.length : 1
+}
+
+// `self` is the `this` jsonata gives the registered function (its focus:
+// `{ environment, input }`), passed on so a raw lambda runs in the caller's
+// environment exactly as it does under jsonata's own $each/$sift. A raw
+// registered function is validated against its signature first, so a bad
+// argument gives T0410 as it does at top level. A partial application
+// (`$f(?, 1)`) arrives without `apply` and still fails with T1006 here, as it
+// does under plain jsonata.
+function invokeCallback(
+  self: unknown,
+  func: JsonataCallback,
+  args: unknown[]
+): unknown {
+  if (typeof func === 'function') return func(...args)
+  if (typeof func.implementation === 'function') {
+    const validate = func.signature?.validate
+    const input = (self as { input?: unknown } | undefined)?.input
+    const validated = validate
+      ? validate.call(func.signature, args, input)
+      : args
+    return func.implementation.apply(self, validated)
+  }
+  if (typeof func.apply === 'function') return func.apply(self, args)
+  throw { code: 'T1006', stack: new Error().stack }
 }
 
 // Mirror of jsonata's internal hofFuncArgs: the value is always passed, the
@@ -236,6 +274,7 @@ export function registerCoreExtensions(expression: Expression): Expression {
   expression.registerFunction(
     'each',
     async function (
+      this: unknown,
       obj: Record<string, unknown> | undefined,
       func: JsonataCallback
     ) {
@@ -243,7 +282,11 @@ export function registerCoreExtensions(expression: Expression): Expression {
       const arity = callbackArity(func)
       const result: unknown[] = []
       for (const key of Object.keys(obj)) {
-        const val = await func(...callbackArgs(arity, obj[key], key, obj))
+        const val = await invokeCallback(
+          this,
+          func,
+          callbackArgs(arity, obj[key], key, obj)
+        )
         if (val !== undefined) result.push(val)
       }
       return result.length === 0
@@ -258,6 +301,7 @@ export function registerCoreExtensions(expression: Expression): Expression {
   expression.registerFunction(
     'sift',
     async function (
+      this: unknown,
       obj: Record<string, unknown> | undefined,
       func: JsonataCallback
     ) {
@@ -265,7 +309,11 @@ export function registerCoreExtensions(expression: Expression): Expression {
       const arity = callbackArity(func)
       const result: Record<string, unknown> = {}
       for (const key of Object.keys(obj)) {
-        const keep = await func(...callbackArgs(arity, obj[key], key, obj))
+        const keep = await invokeCallback(
+          this,
+          func,
+          callbackArgs(arity, obj[key], key, obj)
+        )
         if (effectiveBoolean(keep)) result[key] = obj[key]
       }
       return Object.keys(result).length === 0 ? undefined : result
