@@ -1,4 +1,5 @@
 import jsonata from 'jsonata'
+import { DateTime } from 'luxon'
 import dtFromIso from '../functions/dtFromIso'
 import { registerDatetimeExtensions } from '../presets/datetime'
 import { describe, expect, it } from 'vitest'
@@ -32,6 +33,21 @@ describe('dtFromIso', () => {
   it('should handle an undefined value', () => {
     const result = dtFromIso(undefined as unknown as string)
     expect(result.isValid).toBe(false)
+  })
+
+  it('applies a valid zone given as the second argument', () => {
+    const result = dtFromIso('2024-03-01T10:00:00Z', 'Asia/Kolkata')
+    expect(result.isValid).toBe(true)
+    expect(result.toISO()).toBe('2024-03-01T15:30:00.000+05:30')
+  })
+
+  // 2.x ignored the second argument; stored mappings pass a format there.
+  it('ignores a second argument that is not a zone', () => {
+    const result = dtFromIso('2024-03-01', 'yyyy-LL-dd')
+    expect(result.isValid).toBe(true)
+    expect(result.toUTC().toISO()).toBe(
+      DateTime.fromISO('2024-03-01').toUTC().toISO()
+    )
   })
 
   it('exposes .year to JSONata 2.2+ expressions', async () => {

@@ -118,4 +118,72 @@ describe('$each/$sift builtin parity', () => {
       ).toBeUndefined()
     })
   })
+
+  // Inside a user-defined function body jsonata hands the callback over as a
+  // raw procedure object, not a callable wrapper. Stored unified mappings
+  // define helpers like `$bank := function($a) { $sift({...}, $nn) }`.
+  describe('called inside a user-defined function', () => {
+    it('$sift runs an inline lambda', async () => {
+      expect(
+        await evalCore(
+          '($w := function($a) { $sift($a, function($v) { $v != null }) }; $w(o))',
+          { o: { a: 1, b: null } }
+        )
+      ).toEqual({ a: 1 })
+    })
+
+    it('$each passes key and object to an inline lambda', async () => {
+      expect(
+        await evalCore(
+          '($w := function($a) { $each($a, function($v, $k, $o) { $k & $count($keys($o)) }) }; $w(o))',
+          { o: { a: 1, b: 2 } }
+        )
+      ).toEqual(['a2', 'b2'])
+    })
+
+    it('uses a lambda bound outside, with closure variables in scope', async () => {
+      expect(
+        await evalCore(
+          `(
+            $min := 1;
+            $keep := function($v) { $v > $min };
+            $w := function($a) { $sift($a, $keep) };
+            $w(o)
+          )`,
+          { o: { a: 1, b: 2 } }
+        )
+      ).toEqual({ b: 2 })
+    })
+
+    it('accepts a registered function as the callback', async () => {
+      expect(
+        await evalCore('($w := function($a) { $each($a, $string) }; $w(o))', {
+          o: { a: 1, b: 2 },
+        })
+      ).toEqual(['1', '2'])
+    })
+
+    it('rejects a wrong-typed registered callback with T0410, as at top level', async () => {
+      await expect(
+        evalCore('($w := function($a) { $each($a, $uppercase) }; $w(o))', {
+          o: { a: 1 },
+        })
+      ).rejects.toMatchObject({ code: 'T0410' })
+    })
+
+    it('works in a nested helper reached through a path step', async () => {
+      const result = (await evalCore(
+        `(
+          $nn := function($v) { $v != null and $v != [] };
+          $row := function($a, $uid) { $sift({ "id": $a.id, "user": $uid, "x": $a.x }, $nn) };
+          items.$row($, "u1")
+        )`,
+        { items: [{ id: 1 }, { id: 2, x: [] }] }
+      )) as unknown[]
+      expect(Array.from(result)).toEqual([
+        { id: 1, user: 'u1' },
+        { id: 2, user: 'u1' },
+      ])
+    })
+  })
 })
