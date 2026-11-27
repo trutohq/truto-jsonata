@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { evalCore } from './helpers/jsonataEval'
 
+// $each returns a jsonata sequence like the 2.0 builtin: an array with an own
+// `sequence` flag. Compare the items only.
+const items = (value: unknown) => Array.from(value as unknown[])
+
 // The $each/$sift overrides (null-safety for jsonata 2.2) must otherwise
 // behave exactly like the jsonata 2.0 builtins they replace. These are the
 // regressions the first override version introduced.
@@ -18,7 +22,7 @@ describe('$each/$sift builtin parity', () => {
         'o.$each(function($v, $k) { $k & "=" & $v })',
         { o: { a: 1, b: 2 } }
       )
-      expect(result).toEqual(['a=1', 'b=2'])
+      expect(items(result)).toEqual(['a=1', 'b=2'])
     })
 
     it('supports the documented $sift key-predicate idiom', async () => {
@@ -33,7 +37,7 @@ describe('$each/$sift builtin parity', () => {
   describe('callback arity handling', () => {
     it('accepts signatured single-arg callbacks in $each', async () => {
       const result = await evalCore('$each(o, $string)', { o: { a: 1, b: 2 } })
-      expect(result).toEqual(['1', '2'])
+      expect(items(result)).toEqual(['1', '2'])
     })
 
     it('accepts signatured single-arg callbacks in $sift', async () => {
@@ -48,7 +52,7 @@ describe('$each/$sift builtin parity', () => {
         '$each(o, function($v, $k, $o) { $k & ":" & $v & "/" & $count($keys($o)) })',
         { o: { a: 1, b: 2 } }
       )
-      expect(result).toEqual(['a:1/2', 'b:2/2'])
+      expect(items(result)).toEqual(['a:1/2', 'b:2/2'])
     })
   })
 
@@ -134,9 +138,11 @@ describe('$each/$sift builtin parity', () => {
 
     it('$each passes key and object to an inline lambda', async () => {
       expect(
-        await evalCore(
-          '($w := function($a) { $each($a, function($v, $k, $o) { $k & $count($keys($o)) }) }; $w(o))',
-          { o: { a: 1, b: 2 } }
+        items(
+          await evalCore(
+            '($w := function($a) { $each($a, function($v, $k, $o) { $k & $count($keys($o)) }) }; $w(o))',
+            { o: { a: 1, b: 2 } }
+          )
         )
       ).toEqual(['a2', 'b2'])
     })
@@ -157,9 +163,11 @@ describe('$each/$sift builtin parity', () => {
 
     it('accepts a registered function as the callback', async () => {
       expect(
-        await evalCore('($w := function($a) { $each($a, $string) }; $w(o))', {
-          o: { a: 1, b: 2 },
-        })
+        items(
+          await evalCore('($w := function($a) { $each($a, $string) }; $w(o))', {
+            o: { a: 1, b: 2 },
+          })
+        )
       ).toEqual(['1', '2'])
     })
 

@@ -1,4 +1,5 @@
 import { Expression } from 'jsonata'
+import registerHostFunction from '../functions/registerHostFunction'
 import convertMarkdownToAdf from '../functions/convertMarkdownToAdf'
 import convertMarkdownToGoogleDocs from '../functions/convertMarkdownToGoogleDocs'
 import convertMarkdownToHtml from '../functions/convertMarkdownToHtml'
@@ -8,25 +9,34 @@ import convertMdToPdf from '../functions/convertMdToPdf'
 import convertNotionToMarkdown from '../functions/convertNotionToMarkdown'
 import convertNotionToMd from '../functions/convertNotionToMd'
 
-export function registerMarkdownExtensions(
-  expression: Expression
-): Expression {
-  expression.registerFunction('convertMarkdownToAdf', convertMarkdownToAdf)
-  expression.registerFunction(
+export function registerMarkdownExtensions(expression: Expression): Expression {
+  registerHostFunction(expression, 'convertMarkdownToAdf', convertMarkdownToAdf)
+  registerHostFunction(
+    expression,
     'convertMarkdownToGoogleDocs',
     convertMarkdownToGoogleDocs
   )
-  expression.registerFunction('convertMarkdownToHtml', convertMarkdownToHtml)
-  expression.registerFunction(
+  registerHostFunction(
+    expression,
+    'convertMarkdownToHtml',
+    convertMarkdownToHtml
+  )
+  registerHostFunction(
+    expression,
     'convertMarkdownToNotion',
     convertMarkdownToNotion
   )
-  expression.registerFunction('convertMarkdownToSlack', convertMarkdownToSlack)
-  expression.registerFunction('convertMdToPdf', convertMdToPdf)
-  expression.registerFunction(
+  registerHostFunction(
+    expression,
+    'convertMarkdownToSlack',
+    convertMarkdownToSlack
+  )
+  registerHostFunction(expression, 'convertMdToPdf', convertMdToPdf)
+  registerHostFunction(
+    expression,
     'convertNotionToMarkdown',
     convertNotionToMarkdown
   )
-  expression.registerFunction('convertNotionToMd', convertNotionToMd)
+  registerHostFunction(expression, 'convertNotionToMd', convertNotionToMd)
   return expression
 }

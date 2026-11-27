@@ -215,12 +215,11 @@ export default function jsonToParquet(
     )
   }
 
+  // Rows with no fields (`[{}]`) still give a valid Parquet file with no
+  // columns, as they did in 2.x. Sync templates group rows before this call,
+  // so one empty record forms its own group; throwing would fail the whole
+  // page instead of writing an empty file for that group.
   const names = collectColumnNames(jsonArray)
-  if (isEmpty(names)) {
-    throw new Error(
-      '$jsonToParquet received rows with no columns; a valid Parquet file requires at least one field'
-    )
-  }
 
   const columnData = map(names, (col) =>
     columnSourceFor(

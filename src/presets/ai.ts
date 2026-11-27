@@ -1,13 +1,16 @@
 import { Expression } from 'jsonata'
+import registerHostFunction from '../functions/registerHostFunction'
 import generateEmbeddingsCohere from '../functions/generateEmbeddingsCohere'
 import { recursiveCharacterTextSplitter } from '../functions/recursiveCharacterTextSplitter'
 
 export function registerAiExtensions(expression: Expression): Expression {
-  expression.registerFunction(
+  registerHostFunction(
+    expression,
     'generateEmbeddingsCohere',
     generateEmbeddingsCohere
   )
-  expression.registerFunction(
+  registerHostFunction(
+    expression,
     'recursiveCharacterTextSplitter',
     recursiveCharacterTextSplitter
   )

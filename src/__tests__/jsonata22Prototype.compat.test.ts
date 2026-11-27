@@ -134,7 +134,8 @@ describe('$each null-safety (jsonata 2.2 regression)', () => {
       '$each({"a":1,"b":2}, function($v,$k){$string($v)})'
     )
     const result = await expr.evaluate({})
-    expect(result).toEqual(['1', '2'])
+    // a jsonata sequence, like the 2.0 builtin
+    expect(Array.from(result as unknown[])).toEqual(['1', '2'])
   })
 
   it('handles the production ternary pattern: $type(x)="string" ? ... : $each(x, fn)', async () => {
