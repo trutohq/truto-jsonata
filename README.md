@@ -188,6 +188,12 @@ Host apps only need to bump the version — no per-call-site changes. The bounda
 applies to the **default entrypoint only**; a raw `jsonata()` expression wired up
 with `registerJsonataExtensions` or a preset does not get it.
 
+**Numbers as text, as in JSONata 2.0.** Every build bundles a jsonata that
+turns numbers into text with 15 significant digits, as JSONata 2.0 did:
+`1234567890123456 & ""` gives `"1234567890123460"` (the same for `$string` and
+the transform operator). This is on purpose, for expressions written for 2.0.
+A `jsonata()` expression you build from your own copy of jsonata does not get it.
+
 ### Tree-Shakeable Presets (v2.0+)
 
 For smaller bundles, import only the presets you need. Each preset is independent and can be composed:
@@ -1181,7 +1187,7 @@ Converts a single object or an array of objects to **Apache Parquet** and return
 
 **Input**
 
-- **rows**: One `Record` or an array of records. `null` / `undefined` entries in an array are removed. **At least one record with at least one field is required** — if nothing is left to encode, `$jsonToParquet` throws rather than returning an empty (and therefore corrupt) file.
+- **rows**: One `Record` or an array of records. `null` / `undefined` entries in an array are removed. **If no record is left, `$jsonToParquet` returns an empty `ArrayBuffer` (0 bytes), as 2.x did.** That is not a valid Parquet file, so guard possibly-empty inputs at the call site (for example `$count($rows) = 0 ? null : $jsonToParquet($rows)`). Records with no fields (`[{}]`) give a valid file with no columns.
 - **options** _(optional)_: Only the fields below are passed through; anything else is ignored. Omitted keys use [hyparquet-writer defaults](https://github.com/hyparam/hyparquet-writer) (for example default compression).
 
 | Option | Type | Description |
@@ -1191,9 +1197,7 @@ Converts a single object or an array of objects to **Apache Parquet** and return
 
 Nested objects and arrays are stored with Parquet’s **JSON** logical type (UTF-8 JSON text). Primitive columns are inferred where possible (`BOOLEAN`, `INT32` / `INT64` / `DOUBLE`, `STRING`, timestamps for `Date`, etc.).
 
-**Output validation:** Before returning, `$jsonToParquet` verifies that the encoded bytes are a structurally valid Parquet file — a non-empty body that begins and ends with the `PAR1` magic markers and carries a footer whose declared metadata length fits the body. If the check fails (empty body, truncated or corrupt output), it **throws a descriptive error instead of returning invalid bytes**, so a corrupt file is never handed back for upload or storage. Because the guarantee lives inside the function, it applies everywhere `$jsonToParquet` is evaluated — sync job V4 transforms, workflows, unified/mapping expressions, tests and CLI tooling — and each caller surfaces the failure through its own error handling.
-
-This is intentionally stricter than [`$jsonToCsv`](#jsontocsv), which returns an empty string for empty input: an empty CSV is still a valid file, whereas an empty Parquet file has no valid structure and would be rejected downstream. Guard possibly-empty inputs at the call site (for example `$count($rows) = 0 ? null : $jsonToParquet($rows)`) when you want to skip rather than fail.
+**Output validation:** When there is at least one record, `$jsonToParquet` verifies that the encoded bytes are a structurally valid Parquet file — a non-empty body that begins and ends with the `PAR1` magic markers and carries a footer whose declared metadata length fits the body. If the check fails (empty body, truncated or corrupt output), it **throws a descriptive error instead of returning invalid bytes**, so a corrupt file is never handed back for upload or storage. Because the guarantee lives inside the function, it applies everywhere `$jsonToParquet` is evaluated — sync job V4 transforms, workflows, unified/mapping expressions, tests and CLI tooling — and each caller surfaces the failure through its own error handling.
 
 **Example:**
 

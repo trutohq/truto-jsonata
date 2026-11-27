@@ -42,35 +42,20 @@ describe('jsonToParquet', () => {
     writerControl.override = null
   })
 
-  describe('empty input throws', () => {
-    it('throws for an empty array', () => {
-      expect(() => jsonToParquet([], baseOpts)).toThrow(/no rows to encode/)
+  // 2.x returned an empty buffer when no rows were left; keep that.
+  describe('empty input gives an empty buffer', () => {
+    it.each([
+      ['an empty array', []],
+      ['null', null],
+      ['undefined', undefined],
+      ['only null rows', [null, undefined]],
+    ])('for %s', (_, input) => {
+      const buf = jsonToParquet(
+        input as unknown as Record<string, unknown>[],
+        baseOpts
+      )
+      expect(unwrapArrayBuffer(buf)?.byteLength).toBe(0)
     })
-
-    it('throws for null', () => {
-      expect(() =>
-        jsonToParquet(null as unknown as Record<string, unknown>[], baseOpts)
-      ).toThrow(/no rows to encode/)
-    })
-
-    it('throws for undefined', () => {
-      expect(() =>
-        jsonToParquet(
-          undefined as unknown as Record<string, unknown>[],
-          baseOpts
-        )
-      ).toThrow(/no rows to encode/)
-    })
-
-    it('throws when compact removes all rows', () => {
-      expect(() =>
-        jsonToParquet(
-          [null, undefined] as unknown as Record<string, unknown>[],
-          baseOpts
-        )
-      ).toThrow(/no rows to encode/)
-    })
-
   })
 
   describe('rows with no fields', () => {
@@ -242,10 +227,12 @@ describe('jsonToParquet', () => {
   // ($jsonToParquet inside an evaluated expression), not just the raw function,
   // to lock in that failures propagate as a rejected evaluate() promise.
   describe('JSONata evaluation path', () => {
-    it('rejects the evaluated expression when the input is empty', async () => {
-      await expect(
-        trutoJsonata('$jsonToParquet(rows)').evaluate({ rows: [] })
-      ).rejects.toThrow(/no rows to encode/)
+    it('gives an empty ArrayBuffer when the input is empty', async () => {
+      for (const input of [{ rows: [] }, {}]) {
+        const buf = await trutoJsonata('$jsonToParquet(rows)').evaluate(input)
+        expect(buf).toBeInstanceOf(ArrayBuffer)
+        expect(buf.byteLength).toBe(0)
+      }
     })
 
     it('returns a valid Parquet ArrayBuffer from an evaluated expression', async () => {

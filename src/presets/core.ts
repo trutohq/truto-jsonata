@@ -46,6 +46,7 @@ import sign from '../functions/sign'
 import sortNodes from '../functions/sortNodes'
 import stringifyQuery from '../functions/stringifyQuery'
 import teeStream from '../functions/teeStream'
+import toMillis20 from '../functions/toMillis20'
 import toNumber from '../functions/toNumber'
 import { unwrapNative } from '../functions/unwrapNative'
 import uuid from '../functions/uuid'
@@ -325,6 +326,9 @@ export function registerCoreExtensions(expression: Expression): Expression {
     },
     '<o-f?:o>'
   )
+
+  // The builtin with 2.0's ISO 8601 check; same signature as the builtin.
+  expression.registerFunction('toMillis', toMillis20, '<s-s?:n>')
 
   // lodash wrappers
   registerHostFunction(expression, 'groupBy', function (array: any, key: any) {
