@@ -19,6 +19,11 @@ type Walk = {
  * it leaves JSONata. Also restore JSONata 2.2 null-prototype objects to ordinary
  * host objects. Cycle-safe and copy-on-write; unchanged 2.0-shaped results pass
  * through untouched. Host Dates are stamped in place, so need no unwrap here.
+ *
+ * Only arrays and plain objects are walked. A wrapper inside a Map, Set or
+ * class instance stays a wrapper (and such a value fails structuredClone).
+ * JSONata cannot build those, and Truto functions get natives rather than
+ * wrappers (see toHostArg), so only a container the caller made can hold one.
  */
 function deepUnwrapNative<T = unknown>(value: T): T {
   if (!value || typeof value !== 'object') return value

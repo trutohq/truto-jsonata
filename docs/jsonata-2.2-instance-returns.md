@@ -1,19 +1,21 @@
 # JSONata 2.2 — custom function return types
 
-JSONata 2.2 blocks access to prototype properties/methods on values returned from expressions. Every custom function that returns a native object (`URL`, Luxon `DateTime`, `Blob`, `ArrayBuffer`, `ReadableStream`, `DepGraph`, …) uses a **jsonata-safe wrapper** with own properties and bound methods.
+JSONata 2.2 blocks access to prototype properties/methods on values returned from expressions. Every custom function that returns a native object (`URL`, Luxon `DateTime`, `Blob`, `ArrayBuffer`, `ReadableStream`, `DepGraph`, …) returns a **jsonata-safe wrapper** instead.
 
-Internal consumers (`$getArrayBuffer`, `$getDataUri`, `$bufferToString`, `$parseDocument`) call `unwrapNative()` so wrapped values still work when passed between functions in the same expression.
+Internal consumers (`$getArrayBuffer`, `$getDataUri`, `$bufferToString`, `$parseDocument`) call `unwrapNative()` so wrapped values still work when passed between functions in the same expression. Other Truto functions get the native itself, as under JSONata 2.0.
 
-The native instance is stored under a **non-enumerable** `Symbol`, so it never appears in `$keys`/`$spread` or JSON output. The `DateTime`, `Duration`, and `URL` wrappers also define a **non-enumerable `toJSON`** so returning the value directly still serializes the way the native object did (ISO string / href) — preserving backwards compatibility with mappings that emit the value without chaining a method.
+Luxon values (`DateTime`, and the `Duration`, `Interval`, `Date`, zone and locale objects their members return), `Blob`, `ArrayBuffer` and `$parseUrl`'s `URL` use `toJsonataNative`: a Proxy that reads like the native did under JSONata 2.0. It lists only the native's own keys (so `$keys`, `.*`, `$each`, `$sift`, `$merge`, `=`, `$distinct`, `$string` and `? :` give the 2.0 result: a `DateTime` lists `ts`, `c`, `loc`, …; a `Blob` or `ArrayBuffer` serializes as `{}` and is false as a condition), and it also answers every member the native's prototype defines (getters and methods, not `Object.prototype`). Methods run on the native; objects they return are wrapped the same way. The same native always gives the same wrapper.
+
+The other wrappers are plain objects with own properties and bound methods. The native instance is reachable through a **non-enumerable** `Symbol`, so it never appears in `$keys`/`$spread` or JSON output.
 
 ## Wrapped functions
 
 | Function | Wrapper | JSONata-accessible surface |
 |----------|---------|---------------------------|
-| `$dtFromIso` / `$dtFromFormat` | `toJsonataDateTime` | All Luxon scalar getters (`year`, `month`, `day`, `weekday`, `quarter`, `ordinal`, `weekNumber`, `offset`, `zoneName`, `zone`, `isValid`, …) and methods (`toISO`, `toISODate`, `toISOTime`, `toFormat`, `toRFC2822`, `toHTTP`, `toMillis`, `toSeconds`, `toUnixInteger`, `toJSDate`, `plus`, `minus`, `set`, `startOf`, `endOf`, `setZone`, `diff`, `equals`, `hasSame`, …). `diff`/`diffNow` return a wrapped `Duration` (`as`, `toMillis`, `toFormat`, `shiftTo`, `toObject`, …). |
-| `$parseUrl` | `toJsonataUrl` | `href`, `origin`, `protocol`, `host`, `hostname`, `port`, `pathname`, `search`, `hash`, `toString()`, and `searchParams.{get,has,getAll,keys,values,entries,size,toString}` |
-| `$blob` / `$base64ToBlob` / `$convertMdToPdf` | `toJsonataBlob` | `size`, `type`, `name`, `arrayBuffer`, `text`, `slice`, `stream` |
-| `$jsonToParquet` | `toJsonataArrayBuffer` | `byteLength`, `slice` |
+| `$dtFromIso` / `$dtFromFormat` | `toJsonataDateTime` (`toJsonataNative`) | Every luxon `DateTime` member: own fields (`ts`, `c`, `o`, `loc`, …), getters (`year`, `zoneName`, `zone`, …) and methods (`toISO`, `toObject`, `toJSDate`, `plus`, `diff`, `until`, …). `diff` gives a `Duration`, `until` an `Interval`, `toJSDate` a `Date`, all wrapped the same way. |
+| `$parseUrl` | `toJsonataNative` | Every `URL` member (`href`, `host`, `searchParams.get(…)`, …) |
+| `$blob` / `$base64ToBlob` / `$convertMdToPdf` | `toJsonataBlob` (`toJsonataNative`) | Every `Blob` member (`size`, `type`, `arrayBuffer()`, `text()`, `slice()`, `stream()`, …) plus extra props such as `name`, set on the Blob itself |
+| `$jsonToParquet` / `$getArrayBuffer` | `toJsonataArrayBuffer` (`toJsonataNative`) | Every `ArrayBuffer` member (`byteLength`, `slice()`, …) |
 | `$teeStream` | `toJsonataReadableStream` (×2) | `locked`, `cancel`, `tee`, `getReader` |
 | `$dependencyGraph` | `toJsonataDepGraph` | `overallOrder`, `dependenciesOf`, `dependantsOf`, `hasNode`, `getNodeData`, `clone` |
 

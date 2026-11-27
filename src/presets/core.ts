@@ -1,4 +1,4 @@
-import { Expression } from 'jsonata'
+import jsonata, { Expression } from 'jsonata'
 import registerHostFunction from '../functions/registerHostFunction'
 import {
   castArray,
@@ -46,8 +46,14 @@ import sign from '../functions/sign'
 import sortNodes from '../functions/sortNodes'
 import stringifyQuery from '../functions/stringifyQuery'
 import teeStream from '../functions/teeStream'
+import toMillis20 from '../functions/toMillis20'
 import toNumber from '../functions/toNumber'
-import { unwrapNative } from '../functions/unwrapNative'
+import {
+  NATIVE_OBJECT,
+  NATIVE_READABLE_STREAM,
+  NATIVE_READABLE_STREAM_READER,
+  unwrapNative,
+} from '../functions/unwrapNative'
 import uuid from '../functions/uuid'
 import zipSqlResponse from '../functions/zipSqlResponse'
 
@@ -223,6 +229,70 @@ function effectiveBoolean(arg: unknown): boolean {
   }
 }
 
+// The keys 2.0's builtin $each and $sift walked, with for..in. On a native
+// that also reaches the enumerable members its prototype defines (a Blob's
+// size and type, a URL's href, a stream's getReader, …). A native wrapper
+// lists only the native's own keys, so walk the native itself.
+function walksNative(obj: object): boolean {
+  return (
+    NATIVE_OBJECT in obj ||
+    NATIVE_READABLE_STREAM in obj ||
+    NATIVE_READABLE_STREAM_READER in obj
+  )
+}
+
+function forInKeys(obj: object): string[] {
+  if (!walksNative(obj)) return Object.keys(obj)
+  const keys: string[] = []
+  for (const key in unwrapNative(obj) as object) keys.push(key)
+  return keys
+}
+
+// 2.0's $merge and $spread walked keys with for..in too. Give the builtins a
+// native wrapper as a plain object of those keys; anything else as-is. A key
+// the wrapper does not answer (a stream's pipeTo) reads as undefined.
+function forInView(value: unknown): unknown {
+  if (!value || typeof value !== 'object' || !walksNative(value)) {
+    return value
+  }
+  const view: Record<string, unknown> = {}
+  for (const key of forInKeys(value)) {
+    Object.defineProperty(view, key, {
+      value: (value as Record<string, unknown>)[key],
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    })
+  }
+  return view
+}
+
+type NativeFunction = {
+  implementation: (this: unknown, ...args: unknown[]) => unknown
+}
+const builtins = new Map<string, Promise<NativeFunction>>()
+
+function builtin(name: string): Promise<NativeFunction> {
+  let fn = builtins.get(name)
+  if (!fn) {
+    fn = jsonata('$' + name).evaluate({}) as Promise<NativeFunction>
+    builtins.set(name, fn)
+  }
+  return fn
+}
+
+/** The builtin, with native wrappers in its argument seen as 2.0 saw them. */
+function withForInView(name: string) {
+  return async function (this: unknown, arg: unknown) {
+    const view = Array.isArray(arg)
+      ? arg.some(item => forInView(item) !== item) // rare: one extra view
+        ? arg.map(forInView)
+        : arg
+      : forInView(arg)
+    return (await builtin(name)).implementation.call(this, view)
+  }
+}
+
 export function registerCoreExtensions(expression: Expression): Expression {
   registerHostFunction(expression, 'string', legacyString, '<x-b?:s>')
   registerHostFunction(expression, 'keys', legacyKeys, '<x-:a<s>>')
@@ -290,7 +360,7 @@ export function registerCoreExtensions(expression: Expression): Expression {
       if (obj === undefined) return undefined
       const arity = callbackArity(func)
       const result: unknown[] = []
-      for (const key of Object.keys(obj)) {
+      for (const key of forInKeys(obj)) {
         const val = await invokeCallback(
           this,
           func,
@@ -313,7 +383,7 @@ export function registerCoreExtensions(expression: Expression): Expression {
       if (obj === undefined) return undefined
       const arity = callbackArity(func)
       const result: Record<string, unknown> = {}
-      for (const key of Object.keys(obj)) {
+      for (const key of forInKeys(obj)) {
         const keep = await invokeCallback(
           this,
           func,
@@ -325,6 +395,12 @@ export function registerCoreExtensions(expression: Expression): Expression {
     },
     '<o-f?:o>'
   )
+
+  expression.registerFunction('merge', withForInView('merge'), '<a<o>:o>')
+  expression.registerFunction('spread', withForInView('spread'), '<x-:a<o>>')
+
+  // The builtin with 2.0's ISO 8601 check; same signature as the builtin.
+  expression.registerFunction('toMillis', toMillis20, '<s-s?:n>')
 
   // lodash wrappers
   registerHostFunction(expression, 'groupBy', function (array: any, key: any) {

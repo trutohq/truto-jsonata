@@ -209,11 +209,9 @@ export default function jsonToParquet(
   const jsonArray = compact(
     castArray(json)
   ) as Record<string, unknown>[]
-  if (isEmpty(jsonArray)) {
-    throw new Error(
-      '$jsonToParquet received no rows to encode; a valid Parquet file requires at least one record'
-    )
-  }
+  // No rows: an empty buffer, as 2.x returned. It is not a valid Parquet
+  // file, so callers that may pass no rows check for that first.
+  if (isEmpty(jsonArray)) return toJsonataArrayBuffer(new ArrayBuffer(0))
 
   // Rows with no fields (`[{}]`) still give a valid Parquet file with no
   // columns, as they did in 2.x. Sync templates group rows before this call,

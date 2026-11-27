@@ -1,14 +1,12 @@
-import { NATIVE_BLOB } from './unwrapNative'
-import { toJsonataReadableStream } from './toJsonataReadableStream'
+import { toJsonataNative } from './toJsonataNative'
 
 export function toJsonataBlob(
   blob: Blob,
   extraProps?: Record<string, unknown>
 ) {
-  // The host gets the native Blob back once evaluation ends (deepUnwrapNative),
-  // so put extra props such as `name` on it too: 2.x returned the Blob itself
-  // with `name` set, and hosts read it for Content-Disposition. Props the Blob
-  // already has (a File's own `name`) are left alone.
+  // 2.x returned the Blob itself with extra props such as `name` set on it,
+  // and hosts read them for Content-Disposition, so set them on the Blob.
+  // Props the Blob already has (a File's own `name`) are left alone.
   if (extraProps) {
     for (const [key, value] of Object.entries(extraProps)) {
       if (key in blob) continue
@@ -20,20 +18,9 @@ export function toJsonataBlob(
           writable: true,
         })
       } catch {
-        // a frozen Blob keeps the prop on the wrapper only
+        // a frozen Blob cannot take it
       }
     }
   }
-  const value = {
-    size: blob.size,
-    type: blob.type,
-    arrayBuffer: () => blob.arrayBuffer(),
-    text: () => blob.text(),
-    slice: (start?: number, end?: number, contentType?: string) =>
-      toJsonataBlob(blob.slice(start, end, contentType)),
-    stream: () => toJsonataReadableStream(blob.stream()),
-    ...extraProps,
-  }
-  Object.defineProperty(value, NATIVE_BLOB, { value: blob, enumerable: false })
-  return value
+  return toJsonataNative(blob)
 }

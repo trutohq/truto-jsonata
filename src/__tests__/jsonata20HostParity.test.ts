@@ -6,6 +6,7 @@ import { toJsonataDateTime } from '../functions/toJsonataDateTime'
 import deepUnwrapNative from '../functions/deepUnwrapNative'
 import toHostArg from '../functions/toHostArg'
 import { evalTruto } from './helpers/jsonataEval'
+import { patchJsonata } from '../../scripts/jsonata20NumberText'
 
 const ISO = '2024-03-10T12:34:56Z'
 
@@ -242,14 +243,14 @@ describe('DateTime wrapper', () => {
     expect(zoneName).not.toHaveBeenCalled()
   })
 
-  it('still lists, reads and serializes every member', async () => {
-    const keys = Object.keys(toJsonataDateTime(DateTime.fromISO(ISO)))
-    expect(keys).toContain('year')
-    expect(keys).toContain('zone')
-    expect(keys).toContain('toISO')
-    expect(await evalTruto(`$dtFromIso("${ISO}", "UTC").zone`)).toBe('UTC')
-    expect(await evalTruto(`$merge([$dtFromIso("${ISO}", "UTC")]).year`)).toBe(
-      2024
+  it('lists the luxon own keys, reads every member and serializes', async () => {
+    const dt = DateTime.fromISO(ISO)
+    // as JSONata 2.0 saw the luxon DateTime itself
+    expect(Object.keys(toJsonataDateTime(dt))).toEqual(Object.keys(dt))
+    expect(await evalTruto(`$dtFromIso("${ISO}", "UTC").zone.name`)).toBe('UTC')
+    expect(await evalTruto(`$dtFromIso("${ISO}", "UTC").year`)).toBe(2024)
+    expect(await evalTruto(`$merge([$dtFromIso("${ISO}", "UTC")]).ts`)).toBe(
+      dt.toMillis()
     )
     expect(await evalTruto(`$string($dtFromIso("${ISO}", "UTC"))`)).toBe(
       '"2024-03-10T12:34:56.000Z"'
@@ -302,5 +303,62 @@ describe('cyclic values that change', () => {
     const out = toHostArg(node) as Record<string, unknown>
     expect(out.self).toBe(out)
     expect(Object.getPrototypeOf(out)).toBe(Object.prototype)
+  })
+})
+
+// JSONata 2.2 changed these builtins. Expressions written for 2.0 rely on the
+// old results, so the builds and these tests run a patched jsonata (see
+// scripts/jsonata20NumberText.ts) and a 2.0 $toMillis.
+describe('jsonata builtins behave as in 2.0', () => {
+  const run = (expr: string, input: unknown = {}) =>
+    trutoJsonata(expr).evaluate(input)
+
+  it('turns numbers into text with 15 significant digits', async () => {
+    expect(await run('1234567890123456 & ""')).toBe('1234567890123460')
+    expect(await run('"id-" & x', { x: 9007199254740993 })).toBe(
+      'id-9007199254740990'
+    )
+    expect(await run('$string(9007199254740993)')).toBe('9007199254740990')
+    expect(await run('$string({"id": 1234567890123456})')).toBe(
+      '{"id":1234567890123460}'
+    )
+    expect(await run('0.1 + 0.2 & ""')).toBe('0.3')
+    expect(await run('{"a": 1234567890123456} ~> | $ | {"b": 1} |')).toEqual({
+      a: 1234567890123460,
+      b: 1,
+    })
+  })
+
+  it('the build patch fails loudly if jsonata moves the line', () => {
+    expect(() => patchJsonata('no such line')).toThrow(/expected 1 match/)
+  })
+
+  it('$toMillis gives NaN for the date text 2.0 let through', async () => {
+    expect(await run('$toMillis("2024-01-15-16")')).toBeNaN()
+    expect(await run('$toMillis("2024-13")')).toBeNaN()
+    expect(await run('$toMillis("2024-01-15T10:00:00Z")')).toBe(1705312800000)
+    expect(
+      await run('$toMillis("15/01/2024", "[D01]/[M01]/[Y0001]")')
+    ).toBe(1705276800000)
+    await expect(run('$toMillis("2024-01-15x")')).rejects.toMatchObject({
+      code: 'D3110',
+    })
+  })
+
+  it('$toMillis stays fast on long date-like text', async () => {
+    const start = performance.now()
+    for (const tail of ['!', '-0530!', 'T10:20:30!']) {
+      const s = '2024' + '-01'.repeat(50_000) + tail
+      await expect(run('$toMillis(s)', { s })).rejects.toMatchObject({
+        code: 'D3110',
+      })
+    }
+    expect(performance.now() - start).toBeLessThan(1000)
+  })
+
+  it('$teeStream fails with the 2.0 message on a bad argument', async () => {
+    await expect(run('$teeStream("x")')).rejects.toThrow(
+      'stream.tee is not a function'
+    )
   })
 })

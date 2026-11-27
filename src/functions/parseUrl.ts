@@ -1,3 +1,4 @@
+import { toJsonataNative } from './toJsonataNative'
 import { NATIVE_URL } from './unwrapNative'
 
 /** Plain object with own properties so JSONata 2.2+ can access URL fields and searchParams. */
@@ -40,8 +41,11 @@ export function toJsonataUrl(url: URL) {
   return value
 }
 
+// A URL the expression made reads like the native URL, as under 2.0: members
+// through the prototype, no own keys (so `{}`-like in a condition) and its
+// href as JSON. URL input keeps the toJsonataUrl shape.
 function parseUrl(url: string) {
-  return toJsonataUrl(new URL(url))
+  return toJsonataNative(new URL(url))
 }
 
 export default parseUrl

@@ -2,9 +2,10 @@ import { isArray, isDate, isPlainObject } from 'lodash-es'
 import { DateTime } from 'luxon'
 import jsonataSafeResponse from './jsonataSafeResponse'
 import { toJsonataUrl } from './parseUrl'
-import { toJsonataArrayBuffer } from './toJsonataArrayBuffer'
-import { toJsonataBlob } from './toJsonataBlob'
+import { toInputArrayBuffer, toInputBlob } from './inputBinaryWrappers'
 import { toJsonataDateTime } from './toJsonataDateTime'
+import { originalLambda } from './toHostArg'
+import { existingJsonataNative } from './toJsonataNative'
 import { toJsonataReadableStream } from './toJsonataReadableStream'
 import { unwrapNative } from './unwrapNative'
 
@@ -58,8 +59,8 @@ function stampNativeInstance(node: Blob | ArrayBuffer): unknown {
     // Do not mark STAMPED on a failed stamp — otherwise a later evaluate with
     // the same Workers ArrayBuffer would skip the wrapper fallback and stay
     // unreadable.
-    if (node instanceof ArrayBuffer) return toJsonataArrayBuffer(node)
-    return toJsonataBlob(
+    if (node instanceof ArrayBuffer) return toInputArrayBuffer(node)
+    return toInputBlob(
       node,
       typeof File !== 'undefined' && node instanceof File
         ? { name: node.name, lastModified: node.lastModified }
@@ -169,6 +170,8 @@ type Walk = {
   // copy every container up front, so back-references in a cycle that
   // changes point at the copies
   eager: boolean
+  // give a native that already has a toJsonataNative wrapper that wrapper
+  reuseWrappers: boolean
 }
 
 /**
@@ -177,13 +180,18 @@ type Walk = {
  * mirror URL/Response/ReadableStream. Frozen values fall back to wrappers or a
  * same-type Date clone. Traversal is cycle-safe and copy-on-write; already-safe
  * wrappers and unrelated opaque host objects are left alone.
+ *
+ * `reuseWrappers` is for a Truto function's result: a native it got unwrapped
+ * (see toHostArg) goes back into the wrapper it came out of. Input never
+ * takes it, so caller-passed values keep the input shapes above.
  */
-function mirrorNativeInput<T>(value: T): T {
+function mirrorNativeInput<T>(value: T, reuseWrappers = false): T {
   if (!value || typeof value !== 'object') return value
   const walk: Walk = {
     seen: new Map(),
     backRefs: 0,
     eager: false,
+    reuseWrappers,
   }
   const result = mirrorNativeInputInner(value, walk)
   if (result === value || walk.backRefs === 0) return result as T
@@ -193,6 +201,7 @@ function mirrorNativeInput<T>(value: T): T {
     seen: new Map(),
     backRefs: 0,
     eager: true,
+    reuseWrappers,
   }) as T
 }
 
@@ -228,9 +237,14 @@ function mirrorNativeInputInner(value: unknown, walk: Walk): unknown {
   if (proto === Object.prototype || proto === null) {
     // already a JSONata-safe wrapper: readable as-is, don't walk its methods
     if (unwrapNative(value) !== value) return value
+    // a lambda copy toHostArg made, handed back: the lambda itself
+    const lambda = walk.reuseWrappers && originalLambda(value)
+    if (lambda) return lambda
     return mirrorRecord(value as Record<string, unknown>, walk)
   }
 
+  const wrapper = walk.reuseWrappers && existingJsonataNative(value as object)
+  if (wrapper) return wrapper
   if (value instanceof Blob || value instanceof ArrayBuffer) {
     return stampNativeInstance(value)
   }

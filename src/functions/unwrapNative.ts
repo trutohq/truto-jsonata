@@ -1,4 +1,4 @@
-import type { DateTime } from 'luxon'
+import { DateTime } from 'luxon'
 import type { DepGraph } from 'dependency-graph'
 
 export const NATIVE_BLOB = Symbol('nativeBlob')
@@ -12,12 +12,15 @@ export const NATIVE_LUXON_DATE_TIME = Symbol('luxonDateTime')
 export const NATIVE_URL = Symbol('nativeUrl')
 export const NATIVE_RESPONSE = Symbol('nativeResponse')
 export const NATIVE_HEADERS = Symbol('nativeHeaders')
+// any native a toJsonataNative wrapper boxes
+export const NATIVE_OBJECT = Symbol('nativeObject')
 
 export function unwrapNative(value: unknown): unknown {
   if (!value || typeof value !== 'object') {
     return value
   }
   const record = value as Record<symbol, unknown>
+  if (NATIVE_OBJECT in record) return record[NATIVE_OBJECT]
   if (NATIVE_BLOB in record) return record[NATIVE_BLOB]
   if (NATIVE_ARRAY_BUFFER in record) return record[NATIVE_ARRAY_BUFFER]
   if (NATIVE_READABLE_STREAM in record) return record[NATIVE_READABLE_STREAM]
@@ -63,15 +66,7 @@ export function unwrapDepGraph(value: unknown): DepGraph<unknown> | undefined {
 
 export function unwrapDateTime(value: unknown): DateTime | undefined {
   const unwrapped = unwrapNative(value)
-  if (
-    unwrapped &&
-    typeof unwrapped === 'object' &&
-    'isValid' in unwrapped &&
-    typeof (unwrapped as DateTime).toISO === 'function'
-  ) {
-    return unwrapped as DateTime
-  }
-  return undefined
+  return DateTime.isDateTime(unwrapped) ? unwrapped : undefined
 }
 
 export function unwrapUrl(value: unknown): URL | undefined {
