@@ -18,6 +18,7 @@ import {
   unwrapBlob,
   unwrapDateTime,
   unwrapDepGraph,
+  unwrapNative,
   unwrapReadableStream,
   unwrapUrl,
 } from '../unwrapNative'
@@ -65,12 +66,9 @@ describe('native symbols are non-enumerable across wrappers', () => {
 
   it('native handle is a non-enumerable own symbol', () => {
     const cases: ReadonlyArray<[object, symbol]> = [
-      [toJsonataArrayBuffer(new ArrayBuffer(2)), NATIVE_ARRAY_BUFFER],
       [toJsonataReadableStream(new ReadableStream()), NATIVE_READABLE_STREAM],
       [toJsonataDepGraph(makeGraph()), NATIVE_DEP_GRAPH],
-      [toJsonataBlob(new Blob(['x'])), NATIVE_BLOB],
       [toJsonataUrl(new URL('https://x.test')), NATIVE_URL],
-      [toJsonataDateTime(DateTime.now()), NATIVE_LUXON_DATE_TIME],
     ]
     for (const [obj, sym] of cases) {
       expect(Object.getOwnPropertySymbols(obj)).toContain(sym)
@@ -78,11 +76,25 @@ describe('native symbols are non-enumerable across wrappers', () => {
     }
   })
 
+  it('a native-mirroring wrapper answers its handle without listing it', () => {
+    const buffer = new ArrayBuffer(2)
+    const blob = new Blob(['x'])
+    const dt = DateTime.now()
+    const cases: ReadonlyArray<[object, symbol, object]> = [
+      [toJsonataArrayBuffer(buffer), NATIVE_ARRAY_BUFFER, buffer],
+      [toJsonataBlob(blob), NATIVE_BLOB, blob],
+      [toJsonataDateTime(dt), NATIVE_LUXON_DATE_TIME, dt],
+    ]
+    for (const [obj, sym, native] of cases) {
+      expect(sym in obj).toBe(true)
+      expect((obj as Record<symbol, unknown>)[sym]).toBe(native)
+      expect(Object.getOwnPropertySymbols(obj)).toEqual([])
+    }
+  })
+
   it('Object.keys excludes native handles', () => {
-    expect(Object.keys(toJsonataArrayBuffer(new ArrayBuffer(2)))).toEqual([
-      'byteLength',
-      'slice',
-    ])
+    // an ArrayBuffer has no own keys, as JSONata 2.0 saw it
+    expect(Object.keys(toJsonataArrayBuffer(new ArrayBuffer(2)))).toEqual([])
   })
 
   it('instanceof-based unwrap returns undefined for spread copies', () => {
@@ -168,9 +180,10 @@ describe('toJsonataDateTime', () => {
     expect(wrapped.minus({ days: 1 }).day).toBe(14)
     expect(wrapped.startOf('day').hour).toBe(0)
     expect(wrapped.endOf('month').day).toBe(30)
-    expect(wrapped.setZone('UTC').zone).toBe('UTC')
+    expect(wrapped.setZone('UTC').zone.name).toBe('UTC')
     expect(wrapped.toMillis()).toBe(dt.toMillis())
-    expect(wrapped.toJSDate()).toBeInstanceOf(Date)
+    expect(wrapped.toJSDate().getTime()).toBe(dt.toMillis())
+    expect(unwrapNative(wrapped.toJSDate())).toBeInstanceOf(Date)
     expect(
       wrapped
         .diff(DateTime.fromISO('2024-06-15T00:00:00.000Z', { zone: 'UTC' }), 'hours')
@@ -189,7 +202,7 @@ describe('toJsonataDateTime', () => {
     expect(wrapped.weekNumber).toBe(dt.weekNumber)
     expect(wrapped.daysInMonth).toBe(30)
     expect(wrapped.zoneName).toBe('UTC')
-    expect(wrapped.zone).toBe('UTC')
+    expect(wrapped.zone.name).toBe('UTC')
     expect(wrapped.offset).toBe(0)
     expect(wrapped.isValid).toBe(true)
   })

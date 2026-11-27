@@ -2,6 +2,7 @@ import jsonata from 'jsonata'
 import trutoJsonata from '../index'
 import { registerCoreExtensions } from '../presets/core'
 import { registerDatetimeExtensions } from '../presets/datetime'
+import { unwrapNative } from '../functions/unwrapNative'
 import mappingCases from './fixtures/datetime-mapping-cases.json'
 import { describe, expect, it } from 'vitest'
 
@@ -62,8 +63,10 @@ describe('Luxon forwarding for unified mapping patterns', () => {
     const expr = registerDatetimeExtensions(
       jsonata('$dtFromIso("2024-01-15T00:00:00.000Z").toJSDate()')
     )
+    // a preset gets no output unwrapping: the Date comes back wrapped
     const result = await expr.evaluate({})
-    expect(result).toBeInstanceOf(Date)
+    expect(unwrapNative(result)).toBeInstanceOf(Date)
+    expect((result as Date).toISOString()).toBe('2024-01-15T00:00:00.000Z')
   })
 })
 

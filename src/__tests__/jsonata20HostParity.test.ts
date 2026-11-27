@@ -243,14 +243,14 @@ describe('DateTime wrapper', () => {
     expect(zoneName).not.toHaveBeenCalled()
   })
 
-  it('still lists, reads and serializes every member', async () => {
-    const keys = Object.keys(toJsonataDateTime(DateTime.fromISO(ISO)))
-    expect(keys).toContain('year')
-    expect(keys).toContain('zone')
-    expect(keys).toContain('toISO')
-    expect(await evalTruto(`$dtFromIso("${ISO}", "UTC").zone`)).toBe('UTC')
-    expect(await evalTruto(`$merge([$dtFromIso("${ISO}", "UTC")]).year`)).toBe(
-      2024
+  it('lists the luxon own keys, reads every member and serializes', async () => {
+    const dt = DateTime.fromISO(ISO)
+    // as JSONata 2.0 saw the luxon DateTime itself
+    expect(Object.keys(toJsonataDateTime(dt))).toEqual(Object.keys(dt))
+    expect(await evalTruto(`$dtFromIso("${ISO}", "UTC").zone.name`)).toBe('UTC')
+    expect(await evalTruto(`$dtFromIso("${ISO}", "UTC").year`)).toBe(2024)
+    expect(await evalTruto(`$merge([$dtFromIso("${ISO}", "UTC")]).ts`)).toBe(
+      dt.toMillis()
     )
     expect(await evalTruto(`$string($dtFromIso("${ISO}", "UTC"))`)).toBe(
       '"2024-03-10T12:34:56.000Z"'

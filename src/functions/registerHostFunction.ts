@@ -59,9 +59,10 @@ function canCache(expression: Expression, focus: unknown): boolean {
 /**
  * Register a Truto function so it gets its arguments in the shape the helpers
  * were written against under JSONata 2.0 (see toHostArg): Object.prototype
- * restored on JSONata 2.2 null-prototype objects, and raw luxon DateTimes.
- * When a DateTime was unwrapped, DateTimes in the result are wrapped again so
- * the expression can still read them (`$firstNonEmpty($d1, $d2).toISO()`).
+ * restored on JSONata 2.2 null-prototype objects, and raw natives (luxon
+ * DateTimes, Blobs, …). When a native was unwrapped, natives in the result are
+ * wrapped again so the expression can still read them
+ * (`$firstNonEmpty($d1, $d2).toISO()`).
  */
 export default function registerHostFunction(
   expression: Expression,
@@ -73,15 +74,15 @@ export default function registerHostFunction(
   const fn = implementation as Implementation
   const wrapped = function (this: unknown, ...args: unknown[]) {
     const state: HostArgState = {
-      unwrappedDateTime: false,
+      unwrappedNative: false,
       cache: canCache(expression, this),
     }
     for (let i = 0; i < args.length; i++) args[i] = toHostArg(args[i], state)
     const result = fn.apply(this, args)
-    if (!state.unwrappedDateTime) return result
+    if (!state.unwrappedNative) return result
     return result instanceof Promise
-      ? result.then(value => mirrorNativeInput(value))
-      : mirrorNativeInput(result)
+      ? result.then(value => mirrorNativeInput(value, true))
+      : mirrorNativeInput(result, true)
   }
   // Keep the declared parameters visible. Callers read the count from
   // `implementation.length` ($each/$sift trim callback args by it), and

@@ -1,5 +1,4 @@
-import { toJsonataArrayBuffer } from './toJsonataArrayBuffer'
-import { toJsonataBlob } from './toJsonataBlob'
+import { toInputArrayBuffer, toInputBlob } from './inputBinaryWrappers'
 import { toJsonataReadableStream } from './toJsonataReadableStream'
 import { NATIVE_HEADERS, NATIVE_RESPONSE } from './unwrapNative'
 
@@ -46,8 +45,8 @@ function jsonataSafeResponse(response: Response) {
     url: r.url,
     headers: jsonataSafeHeaders(response.headers),
     body: response.body ? toJsonataReadableStream(response.body) : null,
-    arrayBuffer: async () => toJsonataArrayBuffer(await response.arrayBuffer()),
-    blob: async () => toJsonataBlob(await response.blob()),
+    arrayBuffer: async () => toInputArrayBuffer(await response.arrayBuffer()),
+    blob: async () => toInputBlob(await response.blob()),
     clone: () => jsonataSafeResponse(response.clone()),
     json: () => response.json(),
     text: () => response.text(),
