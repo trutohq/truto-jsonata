@@ -1,11 +1,15 @@
 import MD5 from 'md5.js'
 import arrayBufferToBase64 from './arrayBufferToBase64'
 
+import { unwrapNative } from './unwrapNative'
+
 const digest = async (
-  text: string,
+  value: string,
   algorithm = 'SHA-256',
   stringType = 'hex'
 ) => {
+  // Wrapped binary results reach digest as raw bytes, as they did under 2.x.
+  const text = unwrapNative(value) as string
   // MD5 is not supported by Web Crypto API, so use md5.js library
   if (algorithm === 'MD5' || algorithm === 'md5') {
     const md5 = new MD5().update(text)

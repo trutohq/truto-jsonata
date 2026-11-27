@@ -1,4 +1,8 @@
-function base64encode(input: string | ArrayBufferLike | Uint8Array, urlSafe = false): string {
+import { unwrapNative } from './unwrapNative'
+
+function base64encode(value: string | ArrayBufferLike | Uint8Array, urlSafe = false): string {
+  // $jsonToParquet/$getArrayBuffer return a wrapper; 2.x passed the raw bytes.
+  const input = unwrapNative(value) as string | ArrayBufferLike | Uint8Array
   let bytes: Uint8Array
   if (
     input instanceof ArrayBuffer ||

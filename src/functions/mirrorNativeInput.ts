@@ -160,6 +160,17 @@ function stampDateInstance(date: Date): Date {
   return target
 }
 
+type Walk = {
+  // each node's result; an unchanged node maps to itself
+  seen: Map<object, unknown>
+  // times a node that maps to itself was reached again: a back-reference
+  // in a cycle, or a node shared by two parents
+  backRefs: number
+  // copy every container up front, so back-references in a cycle that
+  // changes point at the copies
+  eager: boolean
+}
+
 /**
  * Make native inputs readable by JSONata 2.2 expressions (which only see own
  * properties): stamp Blob/File/ArrayBuffer/Date in place where possible, and
@@ -168,20 +179,58 @@ function stampDateInstance(date: Date): Date {
  * wrappers and unrelated opaque host objects are left alone.
  */
 function mirrorNativeInput<T>(value: T): T {
-  return mirrorNativeInputInner(value, new WeakMap()) as T
+  if (!value || typeof value !== 'object') return value
+  const walk: Walk = {
+    seen: new Map(),
+    backRefs: 0,
+    eager: false,
+  }
+  const result = mirrorNativeInputInner(value, walk)
+  if (result === value || walk.backRefs === 0) return result as T
+  // A cycle that changes: walk again, copying containers before their
+  // children so back-references reach the copies.
+  return mirrorNativeInputInner(value, {
+    seen: new Map(),
+    backRefs: 0,
+    eager: true,
+  }) as T
 }
 
-function mirrorNativeInputInner(
-  value: unknown,
-  seen: WeakMap<object, unknown>
-): unknown {
+function mirrorNativeInputInner(value: unknown, walk: Walk): unknown {
   if (!value || typeof value !== 'object') {
     return value
   }
-  // already a JSONata-safe wrapper: readable as-is, don't walk its methods
-  if (unwrapNative(value) !== value) {
-    return value
+  const seen = walk.seen.get(value)
+  if (seen !== undefined) {
+    if (seen === value) walk.backRefs++
+    return seen
   }
+
+  // Plain JSON (arrays and Object.prototype objects) is almost all of any
+  // input, so test for it first and walk it without allocating; a container
+  // is copied only once a child actually changes.
+  if (Array.isArray(value)) {
+    let out: unknown[] | undefined = walk.eager ? [] : undefined
+    walk.seen.set(value, out ?? value)
+    for (let i = 0; i < value.length; i++) {
+      const next = mirrorNativeInputInner(value[i], walk)
+      if (out) {
+        out.push(next)
+      } else if (next !== value[i]) {
+        out = value.slice(0, i)
+        out.push(next)
+      }
+    }
+    if (out) walk.seen.set(value, out)
+    return out ?? value
+  }
+  const proto = Object.getPrototypeOf(value)
+  if (proto === Object.prototype || proto === null) {
+    // already a JSONata-safe wrapper: readable as-is, don't walk its methods
+    if (unwrapNative(value) !== value) return value
+    return mirrorRecord(value as Record<string, unknown>, walk)
+  }
+
   if (value instanceof Blob || value instanceof ArrayBuffer) {
     return stampNativeInstance(value)
   }
@@ -206,49 +255,45 @@ function mirrorNativeInputInner(
   ) {
     return toJsonataReadableStream(value)
   }
-  const visited = seen.get(value)
-  if (visited) return visited
-  if (isArray(value)) {
-    const items = value
-    const out: unknown[] = []
-    seen.set(value, out)
-    let changed = false
-    for (let i = 0; i < items.length; i++) {
-      const next = mirrorNativeInputInner(items[i], seen)
-      out.push(next)
-      if (next !== items[i]) changed = true
-    }
-    if (!changed) {
-      seen.set(value, value)
-      return value
-    }
-    return out
-  }
+  // a plain object from another realm (lodash's wider definition)
   if (isPlainObject(value)) {
-    const record = value as Record<string, unknown>
-    const keys = Object.keys(record)
-    const out: Record<string, unknown> = {}
-    seen.set(value, out)
-    let changed = false
-    for (let i = 0; i < keys.length; i++) {
-      const key = keys[i]
-      const next = mirrorNativeInputInner(record[key], seen)
-      // Define rather than assign so a data key named "__proto__" stays data.
-      Object.defineProperty(out, key, {
-        value: next,
-        enumerable: true,
-        configurable: true,
-        writable: true,
-      })
-      if (next !== record[key]) changed = true
-    }
-    if (!changed) {
-      seen.set(value, value)
-      return value
-    }
-    return out
+    if (unwrapNative(value) !== value) return value
+    return mirrorRecord(value as Record<string, unknown>, walk)
   }
   return value
+}
+
+function mirrorRecord(record: Record<string, unknown>, walk: Walk): unknown {
+  const out: Record<string, unknown> | undefined = walk.eager ? {} : undefined
+  walk.seen.set(record, out ?? record)
+  const keys = Object.keys(record)
+  let next: unknown[] | undefined
+  for (let i = 0; i < keys.length; i++) {
+    const child = record[keys[i]]
+    const mirrored = mirrorNativeInputInner(child, walk)
+    if (next) {
+      next[i] = mirrored
+    } else if (mirrored !== child) {
+      next = new Array(keys.length)
+      for (let j = 0; j < i; j++) next[j] = record[keys[j]]
+      next[i] = mirrored
+    }
+  }
+  if (!out && !next) {
+    return record
+  }
+  const copy = out ?? {}
+  for (let i = 0; i < keys.length; i++) {
+    // Define rather than assign so a data key named "__proto__" stays data.
+    Object.defineProperty(copy, keys[i], {
+      value: next ? next[i] : record[keys[i]],
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    })
+  }
+  walk.seen.set(record, copy)
+  return copy
 }
 
 export default mirrorNativeInput

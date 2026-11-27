@@ -42,7 +42,7 @@ describe('jsonToParquet', () => {
     writerControl.override = null
   })
 
-  describe('empty / column-less input throws', () => {
+  describe('empty input throws', () => {
     it('throws for an empty array', () => {
       expect(() => jsonToParquet([], baseOpts)).toThrow(/no rows to encode/)
     })
@@ -71,8 +71,18 @@ describe('jsonToParquet', () => {
       ).toThrow(/no rows to encode/)
     })
 
-    it('throws when the rows have no columns', () => {
-      expect(() => jsonToParquet([{}, {}], baseOpts)).toThrow(/no columns/)
+  })
+
+  describe('rows with no fields', () => {
+    // 2.x wrote a valid zero-column file here. A sync template that groups
+    // rows can hand one empty record to its own call.
+    it('writes a valid zero-column Parquet file', async () => {
+      const buf = jsonToParquet([{}, {}], baseOpts)
+      expectParquetMagic(buf)
+      const rows = await parquetReadObjects({
+        file: unwrapArrayBuffer(buf) as ArrayBuffer,
+      })
+      expect(rows).toEqual([])
     })
   })
 

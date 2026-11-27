@@ -1,6 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { unwrapBlob, unwrapReadableStream } from './unwrapNative'
+import { unwrapBlob, unwrapNative, unwrapReadableStream } from './unwrapNative'
 
 async function getDataUri(file: unknown, mimeType: string) {
   if (!mimeType) {
@@ -26,8 +26,17 @@ async function getDataUri(file: unknown, mimeType: string) {
     return `data:${mimeType};base64,${base64Image}`
   }
 
-  if (file instanceof Buffer || file instanceof Uint8Array) {
-    const buffer = Buffer.from(file as Buffer)
+  // 2.x took any Buffer.from input: bytes, an ArrayBuffer (also the wrapped
+  // one from $jsonToParquet/$getArrayBuffer), an array of byte values or a
+  // string.
+  const raw = unwrapNative(file)
+  if (
+    raw instanceof Uint8Array ||
+    raw instanceof ArrayBuffer ||
+    Array.isArray(raw) ||
+    typeof raw === 'string'
+  ) {
+    const buffer = Buffer.from(raw as Buffer)
     const base64Image = buffer.toString('base64')
     return `data:${mimeType};base64,${base64Image}`
   }

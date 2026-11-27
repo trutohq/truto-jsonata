@@ -1,9 +1,10 @@
 import { Expression } from 'jsonata'
+import registerHostFunction from '../functions/registerHostFunction'
 import dtFromFormat from '../functions/dtFromFormat'
 import dtFromIso from '../functions/dtFromIso'
 
 export function registerDatetimeExtensions(expression: Expression): Expression {
-  expression.registerFunction('dtFromIso', dtFromIso)
-  expression.registerFunction('dtFromFormat', dtFromFormat)
+  registerHostFunction(expression, 'dtFromIso', dtFromIso)
+  registerHostFunction(expression, 'dtFromFormat', dtFromFormat)
   return expression
 }

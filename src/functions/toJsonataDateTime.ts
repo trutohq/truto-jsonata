@@ -121,19 +121,76 @@ function bindDateTimeMethod(dt: DateTime, method: (typeof DATETIME_METHODS)[numb
   }
 }
 
+// JSONata 2.2 reads own properties only, so every getter and method must look
+// like an own, enumerable property. Computing them all per wrap cost ~80us
+// (zoneName and offsetName* go through Intl), and an expression wraps again
+// at every call in a chain; even defining 66 lazy accessors per wrap cost
+// ~8us. So a wrapper is a Proxy with one shared handler: a property is
+// computed the first time it is read (or its descriptor is asked for) and is
+// then stored on the target as a plain value.
+const LAZY: Record<string, (dt: DateTime) => unknown> = Object.create(null)
+for (const getter of DATETIME_GETTERS) {
+  LAZY[getter] = dt => dt[getter as keyof DateTime]
+}
+// Backwards-compatible alias: earlier wrappers exposed `zone` as the zone name string.
+LAZY.zone = dt => dt.zoneName
+for (const method of DATETIME_METHODS) {
+  LAZY[method] = dt => bindDateTimeMethod(dt, method)
+}
+const LAZY_KEYS = Object.keys(LAZY)
+
+type DateTimeTarget = Record<string | symbol, unknown>
+
+function materialize(target: DateTimeTarget, key: string | symbol) {
+  if (
+    typeof key !== 'string' ||
+    !(key in LAZY) ||
+    Object.prototype.hasOwnProperty.call(target, key)
+  ) {
+    return
+  }
+  Object.defineProperty(target, key, {
+    value: LAZY[key](target[NATIVE_LUXON_DATE_TIME] as DateTime),
+    enumerable: true,
+    configurable: true,
+    writable: true,
+  })
+}
+
+const DATETIME_HANDLER: ProxyHandler<DateTimeTarget> = {
+  get(target, key) {
+    materialize(target, key)
+    return target[key as string]
+  },
+  has(target, key) {
+    return (typeof key === 'string' && key in LAZY) || key in target
+  },
+  getOwnPropertyDescriptor(target, key) {
+    materialize(target, key)
+    return Reflect.getOwnPropertyDescriptor(target, key)
+  },
+  // Object.freeze/seal: once the target cannot grow, ownKeys must list only
+  // what it has, so compute every lazy key first.
+  preventExtensions(target) {
+    for (const key of LAZY_KEYS) materialize(target, key)
+    return Reflect.preventExtensions(target)
+  },
+  ownKeys(target) {
+    const keys: (string | symbol)[] = [...LAZY_KEYS]
+    for (const key of Reflect.ownKeys(target)) {
+      if (typeof key !== 'string' || !(key in LAZY)) keys.push(key)
+    }
+    return keys
+  },
+}
+
 /** Plain object with own properties/methods for JSONata 2.2+ (no prototype getter access). */
 export function toJsonataDateTime(dt: DateTime) {
-  const value: Record<string, unknown> = {}
-
-  for (const getter of DATETIME_GETTERS) {
-    value[getter] = dt[getter as keyof DateTime]
-  }
-  // Backwards-compatible alias: earlier wrappers exposed `zone` as the zone name string.
-  value.zone = dt.zoneName
-
-  for (const method of DATETIME_METHODS) {
-    value[method] = bindDateTimeMethod(dt, method)
-  }
+  const value: DateTimeTarget = {}
+  Object.defineProperty(value, NATIVE_LUXON_DATE_TIME, {
+    value: dt,
+    enumerable: false,
+  })
 
   // Preserve legacy serialization: returning the date directly should still
   // JSON-stringify to an ISO string (Luxon's native toJSON behaviour).
@@ -142,10 +199,5 @@ export function toJsonataDateTime(dt: DateTime) {
     enumerable: false,
   })
 
-  Object.defineProperty(value, NATIVE_LUXON_DATE_TIME, {
-    value: dt,
-    enumerable: false,
-  })
-
-  return value
+  return new Proxy(value, DATETIME_HANDLER) as Record<string, unknown>
 }

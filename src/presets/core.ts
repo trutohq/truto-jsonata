@@ -1,4 +1,5 @@
 import { Expression } from 'jsonata'
+import registerHostFunction from '../functions/registerHostFunction'
 import {
   castArray,
   chunk,
@@ -115,32 +116,34 @@ function legacyString(arg: unknown, prettify = false): string | undefined {
   )
 }
 
-function legacyKeys(arg: unknown): string | string[] | undefined {
+// The 2.0 builtin returns a jsonata sequence: the evaluator collapses it to
+// a single key (or to undefined when empty) at the call site, but a lambda
+// that returns it in tail position hands the raw sequence to $map/$each, which
+// keep ['k'] and [] as array entries. Return a sequence too so both cases
+// match 2.0.
+function sequenceOf(items: unknown[]): unknown[] {
+  const sequence = items as unknown[] & { sequence?: boolean }
+  sequence.sequence = true
+  return sequence
+}
+
+function collectKeys(arg: unknown, keys: Set<string>) {
   const rawArg = unwrapNative(arg)
-  const result: string[] = []
   if (isArray(rawArg)) {
-    const keys = new Set<string>()
-    for (const item of rawArg) {
-      const itemKeys = legacyKeys(item)
-      if (isArray(itemKeys)) {
-        itemKeys.forEach(key => keys.add(key))
-      } else if (itemKeys !== undefined) {
-        keys.add(itemKeys)
-      }
-    }
-    result.push(...keys)
+    for (const item of rawArg) collectKeys(item, keys)
   } else if (
     rawArg !== null &&
     typeof rawArg === 'object' &&
     !isJsonataFunction(rawArg)
   ) {
-    result.push(...Object.keys(rawArg))
+    for (const key of Object.keys(rawArg)) keys.add(key)
   }
-  return result.length === 0
-    ? undefined
-    : result.length === 1
-    ? result[0]
-    : result
+}
+
+function legacyKeys(arg: unknown): unknown[] {
+  const keys = new Set<string>()
+  collectKeys(arg, keys)
+  return sequenceOf([...keys])
 }
 
 function callbackArity(func: JsonataCallback): number {
@@ -221,44 +224,46 @@ function effectiveBoolean(arg: unknown): boolean {
 }
 
 export function registerCoreExtensions(expression: Expression): Expression {
-  expression.registerFunction('string', legacyString, '<x-b?:s>')
-  expression.registerFunction('keys', legacyKeys, '<x-:a<s>>')
-  expression.registerFunction('awsSigV4', awsSigV4)
-  expression.registerFunction('base64decode', base64decode)
-  expression.registerFunction('base64encode', base64encode)
-  expression.registerFunction('base64ToBlob', base64ToBlob)
-  expression.registerFunction('blob', blob)
-  expression.registerFunction('bufferToString', bufferToString)
-  expression.registerFunction(
+  registerHostFunction(expression, 'string', legacyString, '<x-b?:s>')
+  registerHostFunction(expression, 'keys', legacyKeys, '<x-:a<s>>')
+  registerHostFunction(expression, 'awsSigV4', awsSigV4)
+  registerHostFunction(expression, 'base64decode', base64decode)
+  registerHostFunction(expression, 'base64encode', base64encode)
+  registerHostFunction(expression, 'base64ToBlob', base64ToBlob)
+  registerHostFunction(expression, 'blob', blob)
+  registerHostFunction(expression, 'bufferToString', bufferToString)
+  registerHostFunction(
+    expression,
     'convertCurrencyFromSubunit',
     convertCurrencyFromSubunit
   )
-  expression.registerFunction(
+  registerHostFunction(
+    expression,
     'convertCurrencyToSubunit',
     convertCurrencyToSubunit
   )
-  expression.registerFunction('dependencyGraph', dependencyGraph)
-  expression.registerFunction('diceCoefficient', diceCoefficient)
-  expression.registerFunction('digest', digest)
-  expression.registerFunction('firstNonEmpty', firstNonEmpty)
-  expression.registerFunction('getArrayBuffer', getArrayBuffer)
-  expression.registerFunction('getDataUri', getDataUri)
-  expression.registerFunction('getMimeType', getMimeType)
-  expression.registerFunction('jsonParse', jsonParse)
-  expression.registerFunction('mapValues', mapValues)
-  expression.registerFunction('mostSimilar', mostSimilar)
-  expression.registerFunction('parseDocument', parseDocument)
-  expression.registerFunction('parseQuery', parseQuery)
-  expression.registerFunction('parseUrl', parseUrl)
-  expression.registerFunction('removeEmpty', removeEmpty)
-  expression.registerFunction('removeEmptyItems', removeEmptyItems)
-  expression.registerFunction('sign', sign)
-  expression.registerFunction('sortNodes', sortNodes)
-  expression.registerFunction('stringifyQuery', stringifyQuery)
-  expression.registerFunction('teeStream', teeStream)
-  expression.registerFunction('toNumber', toNumber)
-  expression.registerFunction('uuid', uuid)
-  expression.registerFunction('zipSqlResponse', zipSqlResponse)
+  registerHostFunction(expression, 'dependencyGraph', dependencyGraph)
+  registerHostFunction(expression, 'diceCoefficient', diceCoefficient)
+  registerHostFunction(expression, 'digest', digest)
+  registerHostFunction(expression, 'firstNonEmpty', firstNonEmpty)
+  registerHostFunction(expression, 'getArrayBuffer', getArrayBuffer)
+  registerHostFunction(expression, 'getDataUri', getDataUri)
+  registerHostFunction(expression, 'getMimeType', getMimeType)
+  registerHostFunction(expression, 'jsonParse', jsonParse)
+  registerHostFunction(expression, 'mapValues', mapValues)
+  registerHostFunction(expression, 'mostSimilar', mostSimilar)
+  registerHostFunction(expression, 'parseDocument', parseDocument)
+  registerHostFunction(expression, 'parseQuery', parseQuery)
+  registerHostFunction(expression, 'parseUrl', parseUrl)
+  registerHostFunction(expression, 'removeEmpty', removeEmpty)
+  registerHostFunction(expression, 'removeEmptyItems', removeEmptyItems)
+  registerHostFunction(expression, 'sign', sign)
+  registerHostFunction(expression, 'sortNodes', sortNodes)
+  registerHostFunction(expression, 'stringifyQuery', stringifyQuery)
+  registerHostFunction(expression, 'teeStream', teeStream)
+  registerHostFunction(expression, 'toNumber', toNumber)
+  registerHostFunction(expression, 'uuid', uuid)
+  registerHostFunction(expression, 'zipSqlResponse', zipSqlResponse)
 
   // jsonata 2.2 changed $each and $sift to throw on undefined instead of
   // returning undefined. Override with undefined-safe versions that otherwise
@@ -271,6 +276,10 @@ export function registerCoreExtensions(expression: Expression): Expression {
   //   (`$each(obj, $string)`) don't throw T0410,
   // - $sift keeps entries per JSONata effective-boolean semantics ($boolean),
   //   not JS truthiness, so e.g. empty arrays/objects are still dropped.
+  //
+  // Registered directly, not through registerHostFunction: they pass values on
+  // to a JSONata callback, which must get them as JSONata sees them (a
+  // DateTime wrapper, not a raw luxon DateTime it cannot read).
   expression.registerFunction(
     'each',
     async function (
@@ -289,11 +298,7 @@ export function registerCoreExtensions(expression: Expression): Expression {
         )
         if (val !== undefined) result.push(val)
       }
-      return result.length === 0
-        ? undefined
-        : result.length === 1
-        ? result[0]
-        : result
+      return sequenceOf(result)
     },
     '<o-f:a>'
   )
@@ -322,63 +327,72 @@ export function registerCoreExtensions(expression: Expression): Expression {
   )
 
   // lodash wrappers
-  expression.registerFunction('groupBy', function (array: any, key: any) {
+  registerHostFunction(expression, 'groupBy', function (array: any, key: any) {
     return groupBy(castArray(array), key)
   })
-  expression.registerFunction('keyBy', function (array: any, key: any) {
+  registerHostFunction(expression, 'keyBy', function (array: any, key: any) {
     return keyBy(castArray(array), key)
   })
-  expression.registerFunction('pick', function (obj: any, keys: any) {
+  registerHostFunction(expression, 'pick', function (obj: any, keys: any) {
     return pick(obj, keys)
   })
-  expression.registerFunction('omit', function (obj: any, keys: any) {
+  registerHostFunction(expression, 'omit', function (obj: any, keys: any) {
     return omit(obj, keys)
   })
-  expression.registerFunction('compact', function (arr: any) {
+  registerHostFunction(expression, 'compact', function (arr: any) {
     return compact(castArray(arr))
   })
-  expression.registerFunction('join', function (arr: any, separator: any) {
-    return join(castArray(arr), separator)
+  registerHostFunction(expression, 'join', function (arr: any, separator: any) {
+    // Unwrap so a DateTime joins as its ISO text, as the raw luxon value did
+    // under 2.0.
+    return join(castArray(arr).map(unwrapNative), separator)
   })
-  expression.registerFunction(
+  registerHostFunction(
+    expression,
     'orderBy',
     function (arr: any, attr: any, order: any) {
       return orderBy(castArray(arr), attr, order)
     }
   )
-  expression.registerFunction('find', function (arr: any, attr: any) {
+  registerHostFunction(expression, 'find', function (arr: any, attr: any) {
     return find(castArray(arr), attr)
   })
-  expression.registerFunction('lofilter', function (arr: any, attr: any) {
+  registerHostFunction(expression, 'lofilter', function (arr: any, attr: any) {
     return filter(castArray(arr), attr)
   })
-  expression.registerFunction('values', function (obj: any) {
+  registerHostFunction(expression, 'values', function (obj: any) {
     return values(obj)
   })
-  expression.registerFunction('chunk', function (arr: any, size: any) {
+  registerHostFunction(expression, 'chunk', function (arr: any, size: any) {
     return chunk(castArray(arr), size)
   })
-  expression.registerFunction(
+  registerHostFunction(
+    expression,
     'wrap',
     function (value: any, wrapper: any, endWrapper: any) {
-      return join([wrapper, value, endWrapper || wrapper], '')
+      return join([wrapper, value, endWrapper || wrapper].map(unwrapNative), '')
     }
   )
-  expression.registerFunction(
+  registerHostFunction(
+    expression,
     'difference',
     function (arr1: any[], arr2: any[]) {
       return difference(arr1, arr2)
     }
   )
-  expression.registerFunction('flatten', function (arr: any) {
+  registerHostFunction(expression, 'flatten', function (arr: any) {
     return flatten(castArray(arr))
   })
-  expression.registerFunction('flattenDeep', function (arr: any) {
+  registerHostFunction(expression, 'flattenDeep', function (arr: any) {
     return flattenDeep(castArray(arr))
   })
-  expression.registerFunction('flattenDepth', function (arr: any, depth: any) {
-    return flattenDepth(castArray(arr), depth)
-  })
+  registerHostFunction(
+    expression,
+    'flattenDepth',
+    function (arr: any, depth: any) {
+      return flattenDepth(castArray(arr), depth)
+    }
+  )
 
   return expression
 }
