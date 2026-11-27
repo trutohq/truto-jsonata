@@ -6,8 +6,8 @@ type NativeFunction = {
 
 // JSONata 2.0's $toMillis took text such as '2024-01-15-16' (its ISO 8601
 // check let the date parts repeat) and returned NaN. JSONata 2.2 throws D3110.
-// This pattern accepts exactly the text 2.0's did, but it cannot backtrack:
-// 2.0's own pattern is the $toMillis DoS that 2.1 fixed. Do not copy it back.
+// This pattern accepts exactly the text 2.0's did and runs in linear time.
+// Keep it this way; do not copy 2.0's own pattern back.
 const ISO8601_20 =
   /^\d{4}(?:-[0-3]\d)*(?:T[0-2]\d:[0-5]\d:[0-5]\d)*(?:\.\d+)?(?:[+-][0-2]\d:?[0-5]\d|Z)?$/
 

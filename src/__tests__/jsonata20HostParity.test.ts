@@ -346,7 +346,6 @@ describe('jsonata builtins behave as in 2.0', () => {
   })
 
   it('$toMillis stays fast on long date-like text', async () => {
-    // 2.0's own check backtracked on text like this (the $toMillis DoS)
     const start = performance.now()
     for (const tail of ['!', '-0530!', 'T10:20:30!']) {
       const s = '2024' + '-01'.repeat(50_000) + tail
